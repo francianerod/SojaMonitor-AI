@@ -235,6 +235,8 @@ sojamonitor-ai/
 │
 └── index.html
     └── protótipo do painel da safra
+│
+└──  Evidencias_Desenvolvimento_SojaMonitor_AI.pdf
 ```
 
 ---
