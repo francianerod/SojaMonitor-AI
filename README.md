@@ -7,8 +7,8 @@ A solução classifica, ao longo do ciclo produtivo, quando a falta de chuva
 passa a comprometer a lavoura de soja — usando um indicador calibrado pela
 exigência hídrica da cultura, e não por convenções meteorológicas genéricas.
 
-Um diferencial para esse repositório e a possibilidade de previsão da estiagem
-para 3 dias.
+Um diferencial para esse repositório é a possibilidade de previsão da estiagem
+da soja para 3 dias a frente.
  
 **Autora:** Franciane Rodrigues — Doutora em Administração (ESAN/UFMS)
  
