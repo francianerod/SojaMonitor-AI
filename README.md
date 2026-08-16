@@ -132,7 +132,7 @@ mesmos números.
 | Limiar de 20,6 mm em janelas de cinco dias | calibrado sobre 44 anos |
 | Modelo de classificação | treinado e validado |
 | Validação em safras contrastantes | concluída (separação temporal) |
-| Painel | protótipo demonstrativo |
+| Painel | protótipo demonstrativo a desenvolver |
 | Ingestão automatizada e API | a desenvolver |
 | Teste com usuários | a realizar |
  
