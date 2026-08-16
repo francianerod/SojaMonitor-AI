@@ -8,7 +8,7 @@ passa a comprometer a lavoura de soja — usando um indicador calibrado pela
 exigência hídrica da cultura, e não por convenções meteorológicas genéricas.
 
 Um diferencial para esse repositório é a possibilidade de previsão da estiagem
-da soja para 3 dias a frente.
+da soja para 3 dias a frente que será estudado e analisado.
  
 **Autora:** Franciane Rodrigues — Doutora em Administração (ESAN/UFMS)
  
