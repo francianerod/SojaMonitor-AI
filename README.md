@@ -51,7 +51,7 @@ sojamonitor-ai/
 ├── cpao_oficial_dados_1979_2023.csv     série diária, Dourados/MS
 ├── 01_validacao_temporal.py             desempenho em safras futuras
 ├── 02_valor_do_modelo.py                modelo vs. regra de cálculo
-└── painel_sojamonitorAI.html              protótipo do painel da safra
+└── index.html                           protótipo do painel da safra
 
 ```
  
