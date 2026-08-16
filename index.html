@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SojaMonitor AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --verde:#2e6b4f; --verde-esc:#1e4a36; --verde-claro:#dfe8e2;
+  --ambar:#c8801e; --ambar-claro:#f6e7cf;
+  --papel:#f4f5f2; --branco:#fff; --tinta:#16261f;
+  --cinza:#6b7570; --linha:#e2e7e3;
+  --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden}
+body{font-family:var(--sans);color:var(--tinta);background:var(--papel);font-size:14px;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--verde);outline-offset:2px}
+.rot{font-family:var(--mono);font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--cinza)}
+
+/* ---------------- login ---------------- */
+#login{position:fixed;inset:0;display:grid;grid-template-columns:1.05fr .95fr;z-index:50}
+.login-arte{background:var(--verde-esc);position:relative;overflow:hidden;display:flex;
+  flex-direction:column;justify-content:space-between;padding:44px 48px;color:#fff}
+.login-arte::after{content:"";position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+  background-size:34px 34px}
+.arte-txt{position:relative;z-index:2;max-width:30ch}
+.arte-txt h2{font-size:29px;line-height:1.22;font-weight:600;margin:0 0 12px;letter-spacing:-.4px}
+.arte-txt p{font-size:14.5px;line-height:1.62;opacity:.8;margin:0}
+.arte-fita{position:relative;z-index:2;display:flex;align-items:flex-end;gap:3px;height:120px}
+.arte-fita i{flex:1;border-radius:2px 2px 0 0;background:#7fae95}
+.arte-fita i.s{background:var(--ambar)}
+.login-form{background:var(--papel);display:flex;align-items:center;justify-content:center;padding:32px}
+.form-box{width:100%;max-width:334px}
+.form-box h1{font-size:20px;margin:22px 0 4px;font-weight:600}
+.form-box .sub{color:var(--cinza);font-size:13.5px;margin:0 0 24px}
+label.f{display:block;margin-bottom:14px}
+label.f span{display:block;margin-bottom:5px}
+label.f input{width:100%;padding:10px 12px;border:1px solid var(--linha);border-radius:7px;
+  font-family:inherit;font-size:14px;background:var(--branco);color:var(--tinta)}
+.btn-p{width:100%;padding:11px;background:var(--verde);color:#fff;border:0;border-radius:7px;
+  font-size:14.5px;font-weight:600;margin-top:6px}
+.btn-p:hover{background:var(--verde-esc)}
+.dica{font-size:12px;color:var(--cinza);text-align:center;margin-top:16px;line-height:1.6}
+.dica b{color:var(--tinta)}
+
+/* ---------------- app ---------------- */
+#app{display:none;height:100%;grid-template-columns:212px 1fr}
+#app.on{display:grid}
+.lateral{background:var(--verde-esc);color:#fff;display:flex;flex-direction:column;padding:20px 14px}
+.marca{display:flex;align-items:center;gap:9px;padding:0 6px 20px;border-bottom:1px solid rgba(255,255,255,.13)}
+.marca b{font-size:15.5px;font-weight:600;letter-spacing:-.2px}
+.marca em{font-style:normal;color:var(--ambar);font-weight:700}
+nav{margin-top:16px;display:flex;flex-direction:column;gap:2px;flex:1}
+nav button{display:flex;align-items:center;gap:10px;background:transparent;border:0;color:rgba(255,255,255,.72);
+  padding:9px 10px;border-radius:7px;font-size:13.5px;text-align:left;width:100%}
+nav button:hover{background:rgba(255,255,255,.08);color:#fff}
+nav button[aria-current=page]{background:var(--verde);color:#fff;font-weight:500}
+nav svg{width:16px;height:16px;flex:0 0 16px;opacity:.9}
+.usuario{border-top:1px solid rgba(255,255,255,.13);padding-top:14px;display:flex;align-items:center;gap:9px}
+.av{width:30px;height:30px;border-radius:50%;background:var(--ambar);display:grid;place-items:center;
+  font-size:12px;font-weight:600;color:#fff;flex:0 0 30px}
+.usuario div{min-width:0}
+.usuario b{display:block;font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.usuario span{font-size:10.5px;opacity:.62}
+.sair{background:transparent;border:0;color:rgba(255,255,255,.5);font-size:11px;margin-left:auto;padding:4px}
+.sair:hover{color:#fff}
+
+main{display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.topo{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--linha);background:var(--branco)}
+.topo h2{font-size:16.5px;margin:0;font-weight:600}
+.topo .via{font-size:12.5px;color:var(--cinza);margin-left:2px}
+.sel{margin-left:auto;display:flex;gap:8px;align-items:center}
+select{font-family:inherit;font-size:13px;padding:7px 10px;border:1px solid var(--linha);
+  border-radius:7px;background:var(--branco);color:var(--tinta)}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;padding:5px 10px;
+  border-radius:99px;background:var(--verde-claro);color:var(--verde-esc);font-weight:500}
+.pill i{width:6px;height:6px;border-radius:50%;background:var(--verde);display:block}
+.pill.al{background:var(--ambar-claro);color:#8a5810}
+.pill.al i{background:var(--ambar)}
+
+.tela{flex:1;padding:18px 22px;overflow:hidden;display:none}
+.tela.on{display:block}
+.card{background:var(--branco);border:1px solid var(--linha);border-radius:11px}
+.card>header{padding:12px 15px 0}
+.card>header h3{font-size:13.5px;margin:3px 0 1px;font-weight:600}
+.card>header p{font-size:11.5px;color:var(--cinza);margin:0}
+
+/* painel */
+#painel{display:grid;grid-template-rows:auto 1fr;gap:14px;height:100%}
+.kpis{display:grid;grid-template-columns:1.45fr 1fr 1fr 1fr;gap:14px}
+.kpi{padding:13px 15px}
+.kpi .v{font-size:27px;font-weight:600;letter-spacing:-.9px;line-height:1.1;margin-top:5px}
+.kpi .u{font-size:11.5px;color:var(--cinza);margin-top:2px}
+.kpi.est{border-left:4px solid var(--ambar);background:linear-gradient(90deg,#fdf7ee,var(--branco) 62%)}
+.kpi.est .v{color:var(--ambar);font-size:20px}
+.kpi.ok{border-left:4px solid var(--verde)}
+.kpi.ok .v{color:var(--verde);font-size:20px}
+.baixo{display:grid;grid-template-columns:1fr 322px;gap:14px;min-height:0}
+.grafico{display:flex;flex-direction:column;min-height:0}
+.grafico .plot{flex:1;padding:4px 12px 10px;min-height:0}
+.grafico svg{width:100%;height:100%;display:block}
+.chave{display:flex;gap:14px;padding:0 15px 11px;font-family:var(--mono);font-size:10px;color:var(--cinza)}
+.chave i{width:9px;height:9px;display:inline-block;margin-right:5px;vertical-align:-1px;border-radius:2px}
+.coluna{display:grid;grid-template-rows:auto 1fr;gap:14px;min-height:0}
+.alerta-box{padding:14px 15px;border-left:4px solid var(--ambar);background:linear-gradient(180deg,#fdf7ee,var(--branco))}
+.alerta-box .t{font-size:14.5px;font-weight:600;margin:6px 0 5px;color:#8a5810}
+.alerta-box p{font-size:12.5px;color:var(--cinza);margin:0;line-height:1.55}
+.lista{overflow:auto;padding:0 5px 8px}
+.item{display:grid;grid-template-columns:38px 1fr;gap:10px;padding:9px 10px;border-bottom:1px solid var(--linha);align-items:center}
+.item:last-child{border-bottom:0}
+.item .d{font-size:17px;font-weight:600;color:var(--ambar);text-align:center;line-height:1}
+.item .d small{display:block;font-size:9px;color:var(--cinza);font-weight:400;margin-top:2px}
+.item .p{font-size:12.5px;line-height:1.4}
+.item .p span{display:block;font-family:var(--mono);font-size:10.5px;color:var(--cinza);margin-top:2px}
+
+/* tabelas */
+table{width:100%;border-collapse:collapse}
+th,td{padding:8px 12px;text-align:right;font-size:12.5px;border-bottom:1px solid var(--linha)}
+th{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--cinza);font-weight:500;background:#fafbfa;position:sticky;top:0}
+th:first-child,td:first-child{text-align:left}
+td.m{font-family:var(--mono)}
+tbody tr:hover{background:#fafbfa}
+.tag{display:inline-block;font-size:10.5px;padding:2px 8px;border-radius:99px;font-family:var(--mono)}
+.tag.on{background:var(--verde-claro);color:var(--verde-esc)}
+.tag.off{background:#f0e2e2;color:#8d3b3b}
+.tag.sec{background:var(--ambar-claro);color:#8a5810}
+.barra{display:inline-block;height:6px;background:var(--ambar);border-radius:2px;margin-right:7px;vertical-align:1px}
+.rolagem{height:100%;overflow:auto}
+
+/* estacoes */
+.grid2{display:grid;grid-template-columns:1fr 330px;gap:14px;height:100%;min-height:0}
+.drop{margin:12px 15px 15px;border:1.5px dashed var(--linha);border-radius:9px;padding:20px 14px;text-align:center}
+.drop p{font-size:12.5px;color:var(--cinza);margin:8px 0 0;line-height:1.5}
+.btn-s{background:var(--branco);border:1px solid var(--linha);border-radius:7px;padding:8px 13px;font-size:13px}
+.btn-s:hover{border-color:var(--verde)}
+.info{padding:13px 15px;font-size:12.5px;color:var(--cinza);line-height:1.6}
+.info b{color:var(--tinta)}
+
+/* informativos */
+.noticias{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;height:100%;min-height:0}
+.noticia{padding:15px;display:flex;flex-direction:column;overflow:auto}
+.noticia h4{font-size:14.5px;margin:8px 0 7px;font-weight:600;line-height:1.32}
+.noticia p{font-size:12.5px;color:var(--cinza);line-height:1.6;margin:0 0 9px}
+.noticia .fonte{margin-top:auto;padding-top:10px;border-top:1px solid var(--linha);
+  font-family:var(--mono);font-size:10px;color:var(--cinza)}
+
+.rodape{padding:7px 22px;border-top:1px solid var(--linha);background:var(--branco);
+  font-size:10.5px;color:var(--cinza)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---------- barra de simulação do ciclo ---------- */
+.tempo{display:flex;align-items:center;gap:14px;padding:10px 22px;background:var(--branco);
+  border-bottom:1px solid var(--linha)}
+.tempo .hoje{min-width:184px}
+.tempo .hoje b{font-size:14.5px;display:block;letter-spacing:-.2px}
+.tempo .hoje span{font-size:11px;color:var(--cinza);font-family:var(--mono)}
+.ctrl{display:flex;gap:5px}
+.ctrl button{width:30px;height:30px;border:1px solid var(--linha);background:var(--branco);border-radius:7px;
+  display:grid;place-items:center;color:var(--verde-esc);font-size:11px;padding:0;font-family:inherit;cursor:pointer}
+.ctrl button:hover{background:var(--verde-claro);border-color:var(--verde-claro)}
+.ctrl button.play{width:auto;padding:0 12px;font-size:12.5px;font-weight:500}
+#cursor{flex:1;accent-color:var(--verde);height:4px}
+.tempo .fim{font-size:11px;color:var(--cinza);font-family:var(--mono);white-space:nowrap}
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<div id="login">
+  <div class="login-arte">
+    <div class="arte-txt">
+      <h2>A lavoura avisa antes de secar. Basta saber ler a chuva.</h2>
+      <p>Monitoramento contínuo da estiagem da cultura da soja, com o limiar
+         calibrado pela exigência hídrica da lavoura.</p>
+    </div>
+    <div class="arte-fita" id="arteFita"></div>
+  </div>
+  <div class="login-form">
+    <div class="form-box">
+      <svg width="46" height="46" viewBox="0 0 120 120" aria-hidden="true">
+        <circle cx="60" cy="52" r="46" fill="#dfe8e2"/>
+        <g transform="translate(60,54)">
+          <path d="M0,-40 C13,-26 13,10 0,24 C-13,10 -13,-26 0,-40 Z" transform="translate(0,-14)" fill="#c8801e"/>
+          <path d="M0,-34 C11,-22 11,8 0,20 C-11,8 -11,-22 0,-34 Z" transform="translate(-24,4) rotate(-34)" fill="#2e6b4f"/>
+          <path d="M0,-34 C11,-22 11,8 0,20 C-11,8 -11,-22 0,-34 Z" transform="translate(24,4) rotate(34)" fill="#2e6b4f"/>
+          <path d="M0,4 L0,34" stroke="#2e6b4f" stroke-width="5" stroke-linecap="round"/>
+        </g>
+        <line x1="26" y1="92" x2="94" y2="92" stroke="#16261f" stroke-width="3.4" stroke-linecap="round"/>
+      </svg>
+      <h1>Entrar no SojaMonitor <em style="font-style:normal;color:var(--ambar)">AI</em></h1>
+      <p class="sub">Acompanhe a estiagem da sua safra em tempo real.</p>
+      <label class="f"><span class="rot">E-mail</span>
+        <input type="email" id="email" value="franciane@sojamonitor.ai" autocomplete="username"></label>
+      <label class="f"><span class="rot">Senha</span>
+        <input type="password" id="senha" value="demonstracao" autocomplete="current-password"></label>
+      <button class="btn-p" id="entrar">Entrar</button>
+      <p class="dica">Protótipo de demonstração — clique em <b>Entrar</b> para acessar.<br>
+        Dados reais da estação da Embrapa Agropecuária Oeste, Dourados/MS.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app">
+  <aside class="lateral">
+    <div class="marca">
+      <svg width="30" height="30" viewBox="0 0 120 120" aria-hidden="true">
+        <circle cx="60" cy="54" r="47" fill="rgba(255,255,255,.12)"/>
+        <g transform="translate(60,56)">
+          <path d="M0,-40 C13,-26 13,10 0,24 C-13,10 -13,-26 0,-40 Z" transform="translate(0,-14)" fill="#c8801e"/>
+          <path d="M0,-34 C11,-22 11,8 0,20 C-11,8 -11,-22 0,-34 Z" transform="translate(-24,4) rotate(-34)" fill="#8fbfa4"/>
+          <path d="M0,-34 C11,-22 11,8 0,20 C-11,8 -11,-22 0,-34 Z" transform="translate(24,4) rotate(34)" fill="#8fbfa4"/>
+          <path d="M0,4 L0,32" stroke="#8fbfa4" stroke-width="5" stroke-linecap="round"/>
+        </g>
+      </svg>
+      <b>SojaMonitor <em>AI</em></b>
+    </div>
+    <nav id="nav">
+      <button data-tela="painel" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        Painel da safra</button>
+      <button data-tela="estacoes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v8"/><circle cx="12" cy="13" r="3"/><path d="M5 22l3-6M19 22l-3-6"/></svg>
+        Estações</button>
+      <button data-tela="alertas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+        Alertas</button>
+      <button data-tela="relatorios">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
+        Relatórios</button>
+      <button data-tela="informativos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h13v16H4z"/><path d="M17 8h3v9a3 3 0 01-3 3M8 8h5M8 12h5M8 16h3"/></svg>
+        Informativos</button>
+    </nav>
+    <div class="usuario">
+      <div class="av">FR</div>
+      <div><b>Franciane R.</b><span>Fazenda Santa Luzia</span></div>
+      <button class="sair" id="sair" title="Sair">sair</button>
+    </div>
+  </aside>
+
+  <main>
+    <div class="topo">
+      <div>
+        <h2 id="tituloTela">Painel da safra</h2>
+        <div class="via" id="subTela">Dourados/MS · estação pública</div>
+      </div>
+      <div class="sel">
+        <span class="pill" id="pillStatus"><i></i> <span>ingestão ativa</span></span>
+        <select id="fonte">
+          <option value="pub">Estação pública — Embrapa Dourados</option>
+          <option value="prop">Minha estação — Fazenda Santa Luzia</option>
+        </select>
+        <select id="safra"></select>
+      </div>
+    </div>
+
+    <div class="tempo" id="barraTempo">
+      <div class="hoje">
+        <b id="dataHoje">—</b>
+        <span id="diaCiclo">—</span>
+      </div>
+      <div class="ctrl">
+        <button id="btnVoltar" title="Dia anterior" aria-label="Dia anterior">&#9664;</button>
+        <button id="btnAvancar" title="Próximo dia" aria-label="Próximo dia">&#9654;</button>
+        <button id="btnPlay" class="play">&#9654; Reproduzir</button>
+      </div>
+      <input type="range" id="cursor" min="4" max="211" value="131" aria-label="Dia do ciclo">
+      <span class="fim" id="fimCiclo">31 mar</span>
+    </div>
+
+    <section class="tela on" id="tela-painel">
+      <div id="painel">
+        <div class="kpis" id="kpis"></div>
+        <div class="baixo">
+          <div class="card grafico">
+            <header><div class="rot">Chuva acumulada em 5 dias</div>
+              <h3>Fita da safra</h3>
+              <p>Abaixo da linha de 20,6 mm a lavoura está em estiagem. À direita da marca de hoje, as três colunas são probabilidade de estiagem nos próximos dias — não milímetros.</p></header>
+            <div class="plot"><svg id="fita" viewBox="0 0 1000 280"></svg></div>
+            <div class="chave">
+              <span><i style="background:var(--verde)"></i>água suficiente</span>
+              <span><i style="background:var(--ambar)"></i>estiagem da cultura</span>
+              <span><i style="border:1.5px dashed var(--ambar);background:#fff"></i>previsão (D+1 a D+3)</span>
+              <span><i style="background:var(--tinta);height:2px"></i>limiar 20,6 mm</span>
+            </div>
+          </div>
+          <div class="coluna">
+            <div class="card alerta-box" id="alertaAtual"></div>
+            <div class="card" style="display:grid;grid-template-rows:auto 1fr;min-height:0">
+              <header><div class="rot">Ocorrências no ciclo</div><h3>Episódios de estiagem</h3></header>
+              <div class="lista" id="episodios"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tela" id="tela-estacoes">
+      <div class="grid2">
+        <div class="card" style="display:grid;grid-template-rows:auto 1fr;min-height:0">
+          <header><div class="rot">Ingestão automática</div>
+            <h3>Estações públicas</h3>
+            <p>Leitura diária de precipitação, sem custo de equipamento.</p></header>
+          <div class="rolagem"><table><thead><tr>
+            <th>Estação</th><th>Município</th><th>Última leitura</th><th>5 dias</th><th>Situação</th>
+          </tr></thead><tbody id="tabEstacoes"></tbody></table></div>
+        </div>
+        <div style="display:grid;grid-template-rows:auto auto 1fr;gap:14px;min-height:0">
+          <div class="card">
+            <header><div class="rot">Integração</div><h3>Minha estação</h3></header>
+            <div class="info">Conectada via API desde 12/09/2025.<br>
+              <b>Fazenda Santa Luzia</b> — pluviômetro automático<br>
+              Sincroniza a cada 30 minutos.</div>
+          </div>
+          <div class="card">
+            <header><div class="rot">Entrada manual</div><h3>Enviar planilha</h3></header>
+            <div class="drop">
+              <button class="btn-s">Escolher arquivo</button>
+              <p>Colunas <b>data</b> e <b>chuva</b>, em XLSX ou CSV.<br>Para quem anota o pluviômetro no caderno.</p>
+            </div>
+          </div>
+          <div class="card">
+            <header><div class="rot">Cobertura</div><h3>Recalibração regional</h3></header>
+            <div class="info">O limiar de 20,6 mm foi calibrado para Dourados.
+              Cada nova região recebe o seu, derivado da série local pelo mesmo método.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tela" id="tela-alertas">
+      <div class="card" style="display:grid;grid-template-rows:auto 1fr;height:100%;min-height:0">
+        <header><div class="rot">Histórico do ciclo</div>
+          <h3>Alertas emitidos</h3>
+          <p>Sequências de três dias ou mais sob o limiar, com a fase da cultura no período.</p></header>
+        <div class="rolagem"><table><thead><tr>
+          <th>Período</th><th>Duração</th><th>Média em 5 dias</th><th>Fase da cultura</th><th>Severidade</th>
+        </tr></thead><tbody id="tabAlertas"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="tela" id="tela-relatorios">
+      <div class="card" style="display:grid;grid-template-rows:auto 1fr;height:100%;min-height:0">
+        <header><div class="rot">Área monitorada · Fazenda Santa Luzia</div>
+          <h3>Comparativo entre safras</h3>
+          <p>Base para acionamento de seguro, crédito rural e caracterização de sinistro.</p></header>
+        <div class="rolagem"><table><thead><tr>
+          <th>Safra</th><th>Dias em estiagem</th><th>% do ciclo</th>
+          <th>Maior sequência</th><th>Alertas</th><th>Chuva no ciclo</th>
+        </tr></thead><tbody id="tabRel"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="tela" id="tela-informativos">
+      <div class="noticias" id="informativos"></div>
+    </section>
+
+    <div class="rodape" id="rodape"></div>
+  </main>
+</div>
+
+<script>
+const DADOS = {"inicio":"2013-07-01","chuva":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,24.6,0.0,2.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.6,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.6,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,23.8,41.6,0.0,0.0,0.0,0.0,11.4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,18.0,0.0,0.0,0.0,0.0,4.4,0.2,0.4,0.0,0.0,0.0,18.0,0.2,25.6,1.8,8.4,25.0,7.0,0.0,0.0,0.0,0.0,0.0,0.0,1.8,26.8,7.8,0.0,14.0,0.4,3.2,0.0,0.0,0.0,19.0,0.0,0.0,6.0,28.4,18.4,0.0,0.0,0.0,0.0,0.0,0.4,0.6,11.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.2,0.4,0.0,0.0,0.0,33.4,0.0,0.0,0.0,24.2,1.0,0.2,0.0,0.0,0.0,0.0,0.0,0.0,2.4,0.8,4.4,0.0,44.4,0.0,0.0,0.0,0.0,0.0,49.0,0.8,0.0,0.0,0.0,0.6,0.0,0.0,0.0,0.0,0.0,0.6,7.6,0.2,0.0,5.4,0.2,0.0,0.0,0.0,21.6,0.0,0.0,0.2,0.0,3.6,32.0,38.2,2.8,0.0,44.8,0.0,0.8,1.0,2.0,23.0,37.4,1.0,0.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,61.6,0.0,0.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.8,0.0,0.0,0.2,0.0,6.8,0.0,0.0,31.6,3.6,3.8,0.0,0.0,0.0,0.0,0.0,44.4,17.6,3.6,0.2,5.0,28.2,20.2,0.2,0.0,0.0,13.2,2.8,0.0,0.0,1.8,0.0,0.0,0.0,17.0,5.6,0.6,0.0,20.2,0.2,0.6,0.8,0.0,7.0,11.2,12.6,0.0,0.0,0.0,0.0,0.0,0.0,0.2,1.6,0.2,0.4,7.4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,17.2,1.4,11.6,4.2,0.2,1.0,0.0,0.0,2.8,0.4,0.2,12.8,7.0,0.2,0.0,0.0,0.0,0.0,0.0,0.0,45.2,9.4,0.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.2,0.0,0.0,0.0,0.0,14.0,0.4,1.8,0.2,0.0,0.0,0.0,27.4,7.6,7.6,10.6,0.2,0.0,0.0,0.0,0.0,5.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,27.6,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,7.6,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.8,5.8,8.6,13.8,2.0,0.0,0.0,0.0,0.0,0.0,0.0,20.0,3.0,0.0,0.0,0.0,0.0,26.2,15.2,0.0,2.2,0.4,3.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,5.2,0.0,0.0,0.0,0.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,15.6,0.2,0.0,0.0,0.0,0.0,0.0,9.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,20.8,2.2,0.0,0.0,0.0,29.8,0.0,4.2,14.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,5.2,1.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,32.2,0.2,0.0,0.0,35.4,3.0,0.0,0.0,0.0,27.0,9.2,0.0,3.4,0.0,0.0,6.2,0.0,3.8,0.0,32.4,0.0,0.0,27.4,1.4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,24.2,50.8,0.0,0.4,21.2,0.0,0.0,0.0,0.0,6.4,12.4,0.6,0.0,0.0,0.0,0.0,9.2,9.4,2.4,1.8,1.8,22.0,5.0,0.0,0.0,0.0,17.6,0.0,0.0,0.8,14.2,10.2,5.8,0.0,0.0,2.2,0.0,0.0,0.0,2.8,0.0,0.0,0.6,2.2,3.0,0.0,0.0,0.0,0.0,0.0,0.0,0.2,0.0,1.6,6.8,0.0,0.0,0.0,0.0,0.0,12.2,0.0,0.2,0.0,0.0,0.0,0.0,18.6,14.8,8.8,12.8,0.2,0.0,6.4,39.8,3.2,4.6,0.0,0.0,0.0,0.0,0.0,0.0,0.0,30.8,2.6,5.0,18.2,11.8,15.8,9.2,4.4,0.0,0.0,0.0,0.2,17.6,2.0,13.6,0.0,0.0,0.0,0.0,6.0,0.0,2.6,20.2,42.0,0.0,0.0,0.0,17.0,0.0,0.6,3.4,0.0,0.0,0.0,0.0,0.0,0.6,0.0,0.0,0.0,0.0,39.8,0.8,19.8,4.0,0.0,21.4,0.0,0.0,0.0,17.8,12.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,8.8,0.2,6.0,51.2,0.0,0.6,2.8,0.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,62.0,0.4,0.0,0.0,0.0,0.0,0.2,32.6,0.2,0.2,0.0,0.0,0.0,1.4,3.2,11.6,0.2,0.0,0.0,0.0,0.0,18.4,0.0,0.0,12.6,0.4,0.0,65.8,0.2,4.6,0.4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,7.2,0.0,12.8,10.4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,33.0,2.0,26.0,14.0,0.0,0.0,0.0,13.4,0.2,0.2,0.0,13.4,0.0,0.0,16.6,5.8,0.0,0.6,0.2,0.0,5.4,0.0,0.0,0.0,10.0,0.0,0.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,15.8,0.4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,35.6,0.2,84.8,0.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,13.8,20.6,34.0,0.0,0.0,43.0,0.2,0.6,55.8,0.0,0.0,0.0,0.0,0.0,2.2,12.0,36.2,29.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,19.0,0.2,0.6,0.0,23.4,0.2,0.0,3.8,0.4,0.0,76.2,8.0,7.2,0.0,0.0,2.4,17.8,0.0,0.0,2.4,0.0,3.4,5.8,0.0,0.0,19.2,33.4,40.8,12.0,0.0,0.0,4.6,0.2,59.2,0.0,0.0,21.4,9.8,2.6,0.6,4.0,5.2,25.6,30.0,0.0,0.0,0.0,0.0,90.6,2.6,65.8,0.0,0.0,15.4,0.0,0.0,0.0,18.0,33.8,0.0,0.0,0.0,6.8,5.8,0.0,10.8,0.4,17.0,10.8,0.0,33.0,2.2,0.4,0.2,0.0,0.8,6.0,0.2,4.0,1.8,16.2,7.4,17.0,45.6,22.4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,25.4,0.4,0.0,1.2,7.8,32.4,6.8,19.0,19.6,17.4,15.2,0.0,0.0,0.0,0.0,0.0,0.0,14.6,0.0,0.0,0.0,0.8,5.0,7.8,0.0,2.0,1.6,33.4,31.6,29.8,0.0,0.8,12.8,25.8,6.4,10.6,11.4,0.0,0.0,0.0,0.0,0.0,0.6,26.8,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.0,3.0,103.0,5.8,0.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,26.2,21.6,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,17.2,2.2,10.4,27.8,16.4,2.4,11.4,0.0,0.2,7.8,3.6,5.2,9.4,0.2,0.2,0.0,2.0,0.0,0.0,0.0,1.0,4.4,47.0,0.2,1.8,0.4,4.6,0.0,0.0,13.4,12.6,12.4,0.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.2,0.2,0.6,0.0,0.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,3.0,0.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,12.6,27.4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,8.4,0.0,0.0,0.0,0.0,0.0,2.6,0.2,0.0,7.6,19.6,19.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,35.4,11.2,0.0,0.0,0.0,1.7,0.0,1.1,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,14.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,3.9,0.0,9.5,0.0,0.0,0.0,0.0,0.0,0.5,0.0,18.3,34.6,0.0,0.0,0.0,0.0,0.0,0.5,0.0,0.0,0.0,0.0,0.0,41.1,0.6,0.0,0.0,0.0,0.5,0.5,15.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.1,0.0,0.3,30.1,2.2,0.0,0.0,16.4,1.8,0.0,0.0,0.0,0.2,0.0,40.9,6.6,1.6,0.0,31.5,0.1,0.0,0.1,9.8,2.0,8.8,15.4,11.6,2.9,6.8,0.1,0.0,0.0,0.0,0.0,4.2,2.5,0.1,0.0,31.1,1.1,0.7,0.1,0.0,0.0,0.0,0.0,0.0,3.0,0.0,0.0,0.0,13.7,0.0,7.0,0.0,0.0,0.0,5.5,5.1,9.9,4.4,7.9,0.1,0.0,9.0,1.4,0.1,13.8,1.6,3.5,0.0,0.0,15.0,0.0,0.0,57.9,35.3,6.6,2.5,65.4,7.1,8.5,0.1,0.0,0.0,0.0,0.6,4.1,0.0,0.0,17.7,0.5,0.0,2.1,0.1,0.0,5.1,2.9,0.8,6.2,1.7,0.0,0.0,0.0,0.0,16.5,0.1,24.6,0.1,0.0,0.0,17.0,0.0,13.3,0.0,0.1,0.0,0.0,0.1,0.0,0.0,10.3,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,3.7,4.8,28.2,0.0,0.3,1.7,0.2,0.0,0.0,0.0,0.0,0.0,37.6,0.1,0.1,2.3,29.6,0.1,0.1,0.0,0.0,0.0,47.7,0.0,0.0,0.0,0.0,0.3,0.0,16.1,8.1,2.6,0.0,0.0,0.0,0.8,1.1,0.0,0.0,15.0,0.8,6.5,0.0,0.4,0.0,5.1,29.5,55.6,0.0,0.0,0.0,0.0,0.0,1.2,0.2,0.0,0.2,0.5,0.2,0.0,0.1,0.0,0.0,16.5,0.1,12.3,0.0,0.0,10.8,1.6,4.4,0.0,0.0,0.0,0.0,0.0,11.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.3,0.0,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,3.2,10.4,31.0,9.0,8.2,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,4.8,0.0,0.0,4.9,2.5,0.1,31.3,0.1,0.0,0.0,0.0,0.1,0.0,6.0,0.0,0.4,7.0,0.1,0.0,0.0,0.0,0.0,0.0,0.0,7.9,2.4,10.2,38.3,0.0,0.0,4.3,3.1,17.1,8.3,0.0,25.2,0.2,0.0,0.0,1.8,14.2,1.1,0.1,0.0,3.8,0.0,1.9,0.0,0.0,0.0,0.0,0.0,8.3,0.1,43.3,0.0,0.0,4.4,0.0,0.0,0.0,1.5,2.9,1.3,0.0,0.0,59.3,0.0,0.0,2.4,0.0,1.0,40.9,7.1,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,5.7,2.2,42.1,11.9,3.3,7.8,12.5,17.8,16.5,9.5,18.5,2.0,4.1,0.1,118.2,0.0,0.0,3.3,29.5,6.3,0.0,43.0,41.5,1.0,3.7,0.8,1.0,7.3,0.7,6.9,14.2,0.4,0.6,0.0,0.0,0.0,0.0,1.0,0.0,0.1,0.2,3.2,2.5,16.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,3.4,0.0,101.9,22.0,0.4,0.0,0.0,0.0,2.9,6.6,8.3,51.8,9.3,0.0,0.0,0.0,0.0,13.1,0.5,4.0,59.6,8.8,2.2,0.2,0.0,5.8,0.0,0.0,0.6,0.3,0.0,0.0,3.8,1.5,0.0,3.3,0.0,18.2,0.0,5.7,3.9,0.1,0.0,0.3,44.7,12.0,0.0,2.9,0.1,25.8,10.0,1.9,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,36.1,0.0,0.0,0.0,0.0,7.9,0.0,6.1,23.9,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.4,5.1,0.4,0.9,0.4,0.0,1.5,0.1,0.0,0.0,0.0,2.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.6,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.6,0.0,0.0,0.5,2.6,1.8,18.1,0.0,0.4,31.2,0.0,0.0,0.0,0.0,0.0,0.0,0.4,0.1,0.0,0.0,0.0,0.0,8.3,4.1,0.1,1.3,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.7,23.7,0.3,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.7,22.2,0.1,52.1,14.2,0.0,0.0,45.5,0.0,0.0,10.8,2.5,0.0,0.0,33.3,0.0,0.0,4.0,0.0,11.9,4.2,0.0,0.0,0.0,1.8,85.8,3.3,70.9,0.1,0.0,0.0,0.2,0.0,0.0,6.7,7.1,0.1,0.0,0.0,0.0,43.8,18.5,13.4,33.9,0.0,0.0,0.0,0.0,4.6,49.5,0.1,6.6,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,7.5,10.9,23.7,0.0,20.8,0.0,0.0,0.0,0.0,29.0,0.1,0.0,0.0,0.0,15.5,12.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,28.2,0.0,0.0,1.3,0.0,0.0,0.0,10.1,8.1,3.0,0.0,0.0,0.0,14.0,2.6,1.1,0.4,0.0,0.3,0.0,0.0,95.2,0.1,11.6,0.0,1.1,0.0,9.7,1.6,2.7,0.0,2.7,0.0,0.0,14.4,0.0,6.3,0.0,0.0,0.0,0.0,0.0,2.5,0.1,1.5,5.6,11.3,0.0,0.0,0.0,0.0,14.9,11.3,0.0,0.0,0.0,0.0,29.7,0.1,32.2,0.0,50.9,0.1,0.0,0.2,40.9,0.9,0.1,0.0,0.0,0.0,0.0,3.7,68.5,6.7,0.0,0.0,0.0,0.0,0.0,2.2,0.0,0.4,0.0,0.0,12.1,2.9,34.5,4.2,47.9,8.6,0.0,7.3,29.4,16.1,30.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.1,0.0,0.0,0.4,3.6,0.0,0.0,5.7,1.2,0.0,0.0,0.0,0.0,0.0,0.0,0.3,0.0,0.0,0.0,0.0,0.0,0.0,0.0,27.7,0.5,0.0,0.0,0.0,3.3,0.7,0.8,0.0,5.4,1.4,0.0,3.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.5,0.0,0.0,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,3.8,15.5,0.0,0.0,0.0,0.0,3.6,1.1,0.1,5.5,6.7,15.4,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.3,1.6,0.0,0.0,0.0,0.0,0.2,25.3,12.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,8.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,6.0,1.2,0.0,0.0,0.0,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.8,0.1,0.0,0.0,0.0,1.6,7.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,6.4,0.0,0.0,0.0,0.0,13.3,0.0,0.0,0.0,0.0,0.0,0.0,0.0,5.5,4.4,1.7,0.0,0.3,0.0,0.0,0.0,0.8,0.0,2.4,11.2,0.0,0.0,0.0,0.0,0.3,0.2,4.6,0.0,0.0,0.0,0.1,0.3,0.0,0.0,0.0,0.0,0.3,0.0,7.0,7.1,0.0,0.0,0.0,4.6,0.0,12.9,6.1,0.0,0.0,11.4,4.3,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.6,4.5,40.0,0.1,0.0,0.0,0.0,2.8,0.1,13.6,15.3,0.0,0.0,0.0,13.8,8.4,2.2,27.7,0.0,1.1,0.1,54.8,26.8,19.2,2.0,0.0,7.8,0.0,0.0,0.0,15.1,0.0,0.0,0.0,0.0,6.0,0.0,18.0,0.0,4.5,3.5,1.7,0.0,19.2,1.6,0.1,0.0,8.7,20.2,7.6,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,50.4,13.8,0.0,0.0,0.0,1.8,0.0,4.3,14.1,2.8,3.0,25.3,0.1,15.8,0.1,0.0,0.5,0.0,0.0,47.3,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.2,24.9,9.6,0.0,0.0,0.0,1.3,0.6,18.4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.6,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.0,0.0,0.0,61.6,0.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,34.5,1.3,0.0,0.0,0.0,0.0,0.0,0.0,0.0,35.3,2.7,0.0,0.0,0.0,0.0,0.0,16.7,1.6,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,4.0,0.0,0.0,0.0,0.0,0.0,81.5,12.4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,26.3,0.0,0.0,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.4,15.3,0.1,5.3,3.5,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,6.1,35.6,32.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,9.8,0.0,2.4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.2,0.0,16.1,18.8,10.7,36.2,8.7,25.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.3,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,17.5,0.0,23.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.3,0.0,0.0,0.0,0.0,2.1,8.8,6.6,24.2,0.1,0.0,0.0,0.0,1.5,12.4,0.0,0.0,2.8,0.0,32.2,0.0,0.0,42.4,0.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.5,13.4,7.6,0.0,0.0,0.0,0.0,7.6,0.2,12.6,2.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.6,0.0,4.2,0.0,0.0,16.2,0.1,21.5,29.0,5.0,0.1,0.0,0.0,0.0,0.0,0.2,29.3,0.0,3.1,19.8,5.5,0.0,0.0,0.5,0.1,0.0,0.0,0.0,0.0,0.0,0.3,0.0,0.0,0.0,0.0,0.0,0.0,9.1,10.7,21.0,12.1,11.5,0.1,0.0,0.0,0.0,38.9,6.1,5.4,1.4,38.2,7.1,18.9,18.6,3.4,10.6,13.3,6.3,74.7,1.6,19.0,4.0,0.9,3.4,8.9,4.0,0.0,0.0,0.7,0.0,0.0,0.0,0.0,0.0,0.0,0.0,5.6,0.0,5.8,0.9,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,29.8,0.0,0.0,0.0,0.0,0.0,1.0,1.4,12.6,2.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.5,1.7,0.0,3.5,13.5,0.0,0.0,0.7,0.0,0.4,2.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.9,2.0,0.0,0.0,0.0,0.0,0.0,0.0,22.1,2.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.5,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.0,0.2,0.0,0.0,0.0,0.0,0.0,0.0,0.2,9.0,22.6,0.2,0.0,0.0,0.0,0.0,4.6,33.6,1.3,65.5,25.4,0.0,0.1,0.0,0.1,0.0,0.0,0.2,0.0,0.1,0.0,0.0,0.0,0.0,0.3,0.0,0.0,0.2,0.9,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.7,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.5,40.1,2.2,1.1,0.0,0.0,0.0,0.0,0.0,0.0,3.1,0.0,0.0,0.0,2.5,0.3,1.9,0.0,0.0,1.6,0.0,39.5,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.4,0.0,0.0,0.0,0.0,15.3,7.6,0.7,9.3,0.0,0.0,27.5,0.1,40.2,49.3,0.0,0.0,0.0,36.8,26.0,0.3,0.9,1.0,0.0,0.0,0.0,0.0,27.4,10.3,0.0,0.0,0.0,0.2,0.0,8.5,0.0,0.0,0.0,0.0,0.0,4.0,0.1,0.0,0.0,0.0,14.2,0.0,0.0,0.0,0.0,1.5,2.6,0.2,0.6,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.8,0.0,18.4,4.8,0.0,0.0,0.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.6,1.2,25.0,3.3,0.0,17.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.8,0.0,0.0,0.0,7.0,0.1,0.0,0.0,0.0,0.0,5.8,0.0,29.8,0.0,0.1,0.0,0.0,2.6,0.0,0.0,0.0,0.0,0.0,0.0,14.0,0.0,0.0,0.0,1.2,0.0,0.0,1.7,0.2,0.4,0.2,0.0,0.0,0.0,0.0,8.3,0.0,3.1,2.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,3.9,0.2,0.1,0.2,0.0,1.8,0.0,0.0,0.0,0.0,0.0,5.7,0.5,0.0,13.8,67.4,0.2,0.2,0.0,0.0,0.4,0.3,0.0,0.0,36.7,61.0,0.8,9.3,0.0,0.0,0.0,0.0,7.8,0.3,0.1,0.0,13.3,0.2,10.1,49.4,0.0,0.0,0.0,2.5,0.1,18.7,3.6,0.4,0.3,0.0,0.0,0.0,0.0,8.4,0.0,0.0,9.6,25.2,48.2,0.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,4.0,54.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,31.3,0.0,0.0,0.0,0.0,0.0,0.0,18.5,0.5,0.1,0.0,32.2,0.1,0.0,0.0,0.0,0.0,0.0,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.0,2.1,28.7,0.0,0.1,0.0,0.0,0.0,0.0,0.0,0.0,40.2,5.1,0.0,0.0,0.0,0.0,0.0,0.0,16.6,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.4,0.0,0.0,0.0,1.7,0.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,19.3,0.0,18.5,0.0,0.1,0.0,0.0,0.0,0.0,55.7,4.4,80.3,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,4.5,0.0,0.0,0.0,0.0,0.0,1.3,0.0,0.0,10.4,23.1,0.0,0.0,0.0,0.0,7.8,2.0,3.7,0.1,0.0,0.0,0.0,6.9,23.9,7.0,10.5,10.8,0.0,0.0,0.0,0.0,22.7,31.1,0.0,0.0,0.0,0.0,18.6,1.8,10.0,1.6,0.7,0.0,15.1,0.8,0.0,3.8,1.2,0.0,0.0,0.0,0.0,0.0,7.2,0.0,13.4,0.0,10.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,26.0,6.4,38.3,0.0,0.0,0.0,0.0,0.0,0.0,0.0,28.9,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.2,3.9,6.0,0.1,23.9,0.0,0.0,0.0,0.6,0.2,5.9,0.0,6.6,0.0,0.0,0.0,0.0,4.4,0.0,0.0,0.0,0.0,0.0,18.5,0.8,0.0,0.9,20.0,0.0,0.0,0.0,0.0,9.0,0.0,16.0,0.0,0.0,0.0,0.0,0.0,12.2,41.9,0.1,0.8,3.6,0.2,0.1,3.9,0.1,12.4,0.0,24.1,11.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,8.3,52.2,0.0,39.6,15.2,0.0,0.0,7.7,0.0,0.0,0.1,0.5,0.1,17.9,17.9,6.5,3.4,36.1,42.0,0.0,0.0,18.2,1.2,2.7,23.9,29.5,0.2,10.1,20.4,9.4,4.8,19.7,1.0,0.0,0.0,0.0,3.8,0.0,0.0,0.3,4.2,21.6,6.3,17.1,0.2,24.6,0.1,8.3,0.0,0.0,0.0,0.0,0.0,0.0,0.0,3.7,0.0,0.0,0.0,34.7,0.0,0.0,0.0,0.0,0.0,4.0,2.9,0.0,0.0,0.0,0.0,0.0,0.2,12.6,0.1,0.0,0.0,28.8,14.3,0.2,0.0,0.0,0.0,0.0,33.3,13.7,23.7,0.2,0.1,0.0,0.0,0.0,0.2,6.3,0.2,0.1,0.0,0.0,8.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.9,0.0,0.0,0.0,0.0,4.6,30.4,0.1,0.1,0.3,0.0,0.0,0.1,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,4.4,15.5,17.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,6.9,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.1,0.0,2.0,0.1,0.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.2,0.0,0.0,0.0,29.4,0.1,0.0,0.0,0.0,0.0,35.1,0.1,17.2,0.0,0.0,0.0,0.0,1.1,0.0,0.0,0.0,0.0,37.0,14.6,0.0,0.0,0.0,3.2,0.0,0.1,0.0,11.4,37.2,0.1,0.0,0.3,10.2,0.0,0.0,0.0,0.0,2.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.2,61.6,0.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.2,75.9,0.9,0.1,0.0,0.0,55.1,10.4,51.3,7.4,0.0,0.0,6.7,33.9,32.9,0.0,3.3,0.0,0.0,0.0,0.0,1.1,12.6,0.0,0.0,0.0,6.2,0.0,0.0,0.0,0.0,0.0,3.0,0.0,0.0,0.0,25.2,13.3,3.8,13.1,14.0,8.8,2.1,12.3,0.0,0.0,0.0,0.2,15.8,0.0,1.5,0.0,0.0,18.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.5,0.1,2.0,0.0,0.0,0.0,0.0,0.0,0.0]};
+const PREV = {"2013-09-01":[0.95,0.77,0.62],"2013-09-02":[0.0,0.0,0.01],"2013-09-03":[0.0,0.0,0.0],"2013-09-04":[0.0,0.0,0.07],"2013-09-05":[0.0,0.01,0.7],"2013-09-06":[0.13,0.84,0.7],"2013-09-07":[0.92,0.77,0.66],"2013-09-08":[0.76,0.59,0.45],"2013-09-09":[0.84,0.71,0.55],"2013-09-10":[0.86,0.72,0.73],"2013-09-11":[0.89,0.85,0.77],"2013-09-12":[0.94,0.92,0.81],"2013-09-13":[0.93,0.78,0.72],"2013-09-14":[0.91,0.8,0.7],"2013-09-15":[0.93,0.81,0.72],"2013-09-16":[0.93,0.81,0.71],"2013-09-17":[0.59,0.43,0.33],"2013-09-18":[0.65,0.49,0.46],"2013-09-19":[0.66,0.62,0.68],"2013-09-20":[0.8,0.74,0.63],"2013-09-21":[0.91,0.77,0.62],"2013-09-22":[0.75,0.65,0.53],"2013-09-23":[0.85,0.73,0.66],"2013-09-24":[0.8,0.71,0.6],"2013-09-25":[0.86,0.76,0.65],"2013-09-26":[0.92,0.75,0.62],"2013-09-27":[0.89,0.76,0.65],"2013-09-28":[0.57,0.41,0.37],"2013-09-29":[0.72,0.52,0.5],"2013-09-30":[0.01,0.0,0.11],"2013-10-01":[0.0,0.03,0.03],"2013-10-02":[0.01,0.01,0.58],"2013-10-03":[0.0,0.01,0.06],"2013-10-04":[0.02,0.01,0.04],"2013-10-05":[0.0,0.0,0.61],"2013-10-06":[0.05,0.77,0.61],"2013-10-07":[0.9,0.82,0.66],"2013-10-08":[0.84,0.77,0.69],"2013-10-09":[0.84,0.76,0.69],"2013-10-10":[0.89,0.77,0.67],"2013-10-11":[0.82,0.74,0.65],"2013-10-12":[0.0,0.0,0.0],"2013-10-13":[0.0,0.0,0.01],"2013-10-14":[0.0,0.0,0.65],"2013-10-15":[0.0,0.05,0.27],"2013-10-16":[0.41,0.49,0.34],"2013-10-17":[0.43,0.36,0.54],"2013-10-18":[0.76,0.76,0.71],"2013-10-19":[0.86,0.74,0.64],"2013-10-20":[0.86,0.75,0.68],"2013-10-21":[0.31,0.34,0.25],"2013-10-22":[0.76,0.57,0.53],"2013-10-23":[0.74,0.69,0.69],"2013-10-24":[0.08,0.63,0.48],"2013-10-25":[0.0,0.0,0.01],"2013-10-26":[0.0,0.0,0.0],"2013-10-27":[0.0,0.0,0.28],"2013-10-28":[0.04,0.54,0.71],"2013-10-29":[0.54,0.81,0.58],"2013-10-30":[0.88,0.75,0.59],"2013-10-31":[0.85,0.67,0.55],"2013-11-01":[0.76,0.56,0.48],"2013-11-02":[0.76,0.61,0.56],"2013-11-03":[0.72,0.6,0.54],"2013-11-04":[0.9,0.75,0.6],"2013-11-05":[0.91,0.62,0.62],"2013-11-06":[0.62,0.68,0.6],"2013-11-07":[0.87,0.7,0.54],"2013-11-08":[0.88,0.72,0.58],"2013-11-09":[0.87,0.71,0.58],"2013-11-10":[0.88,0.72,0.58],"2013-11-11":[0.88,0.67,0.56],"2013-11-12":[0.84,0.64,0.52],"2013-11-13":[0.89,0.72,0.55],"2013-11-14":[0.88,0.67,0.55],"2013-11-15":[0.88,0.74,0.61],"2013-11-16":[0.0,0.0,0.0],"2013-11-17":[0.0,0.0,0.01],"2013-11-18":[0.0,0.0,0.62],"2013-11-19":[0.0,0.72,0.6],"2013-11-20":[0.02,0.0,0.02],"2013-11-21":[0.0,0.0,0.01],"2013-11-22":[0.0,0.0,0.62],"2013-11-23":[0.02,0.76,0.69],"2013-11-24":[0.92,0.84,0.7],"2013-11-25":[0.9,0.81,0.66],"2013-11-26":[0.87,0.74,0.59],"2013-11-27":[0.86,0.74,0.6],"2013-11-28":[0.86,0.74,0.6],"2013-11-29":[0.8,0.69,0.53],"2013-11-30":[0.85,0.71,0.57],"2013-12-01":[0.74,0.64,0.53],"2013-12-02":[0.85,0.62,0.55],"2013-12-03":[0.0,0.0,0.01],"2013-12-04":[0.01,0.0,0.0],"2013-12-05":[0.0,0.01,0.59],"2013-12-06":[0.01,0.66,0.53],"2013-12-07":[0.87,0.64,0.51],"2013-12-08":[0.86,0.68,0.52],"2013-12-09":[0.0,0.0,0.0],"2013-12-10":[0.0,0.0,0.0],"2013-12-11":[0.0,0.0,0.57],"2013-12-12":[0.01,0.69,0.56],"2013-12-13":[0.85,0.62,0.42],"2013-12-14":[0.76,0.57,0.46],"2013-12-15":[0.84,0.69,0.55],"2013-12-16":[0.86,0.68,0.57],"2013-12-17":[0.86,0.68,0.52],"2013-12-18":[0.87,0.66,0.52],"2013-12-19":[0.89,0.78,0.66],"2013-12-20":[0.89,0.67,0.59],"2013-12-21":[0.76,0.57,0.46],"2013-12-22":[0.86,0.69,0.62],"2013-12-23":[0.88,0.71,0.69],"2013-12-24":[0.73,0.59,0.5],"2013-12-25":[0.78,0.64,0.52],"2013-12-26":[0.82,0.67,0.62],"2013-12-27":[0.88,0.77,0.67],"2013-12-28":[0.91,0.76,0.59],"2013-12-29":[0.0,0.0,0.0],"2013-12-30":[0.0,0.0,0.01],"2013-12-31":[0.0,0.01,0.74],"2014-01-01":[0.02,0.73,0.67],"2014-01-02":[0.85,0.8,0.7],"2014-01-03":[0.78,0.72,0.55],"2014-01-04":[0.0,0.0,0.0],"2014-01-05":[0.0,0.0,0.0],"2014-01-06":[0.0,0.0,0.01],"2014-01-07":[0.0,0.01,0.6],"2014-01-08":[0.01,0.01,0.02],"2014-01-09":[0.02,0.0,0.02],"2014-01-10":[0.01,0.0,0.65],"2014-01-11":[0.04,0.68,0.62],"2014-01-12":[0.76,0.63,0.46],"2014-01-13":[0.0,0.0,0.01],"2014-01-14":[0.0,0.0,0.0],"2014-01-15":[0.0,0.0,0.02],"2014-01-16":[0.0,0.0,0.54],"2014-01-17":[0.08,0.75,0.59],"2014-01-18":[0.92,0.8,0.62],"2014-01-19":[0.88,0.71,0.58],"2014-01-20":[0.89,0.73,0.62],"2014-01-21":[0.9,0.74,0.62],"2014-01-22":[0.89,0.75,0.64],"2014-01-23":[0.85,0.72,0.6],"2014-01-24":[0.94,0.85,0.76],"2014-01-25":[0.0,0.0,0.01],"2014-01-26":[0.0,0.0,0.01],"2014-01-27":[0.0,0.0,0.59],"2014-01-28":[0.03,0.72,0.58],"2014-01-29":[0.83,0.69,0.56],"2014-01-30":[0.89,0.78,0.65],"2014-01-31":[0.9,0.77,0.66],"2014-02-01":[0.88,0.77,0.66],"2014-02-02":[0.88,0.77,0.65],"2014-02-03":[0.88,0.76,0.65],"2014-02-04":[0.91,0.7,0.55],"2014-02-05":[0.9,0.69,0.58],"2014-02-06":[0.75,0.66,0.57],"2014-02-07":[0.84,0.74,0.64],"2014-02-08":[0.87,0.73,0.56],"2014-02-09":[0.8,0.63,0.47],"2014-02-10":[0.78,0.67,0.55],"2014-02-11":[0.89,0.68,0.67],"2014-02-12":[0.0,0.0,0.01],"2014-02-13":[0.0,0.01,0.0],"2014-02-14":[0.0,0.0,0.48],"2014-02-15":[0.01,0.69,0.61],"2014-02-16":[0.84,0.78,0.65],"2014-02-17":[0.86,0.74,0.59],"2014-02-18":[0.9,0.74,0.57],"2014-02-19":[0.88,0.75,0.62],"2014-02-20":[0.0,0.0,0.0],"2014-02-21":[0.0,0.0,0.0],"2014-02-22":[0.0,0.0,0.12],"2014-02-23":[0.0,0.02,0.56],"2014-02-24":[0.13,0.46,0.4],"2014-02-25":[0.0,0.0,0.0],"2014-02-26":[0.0,0.0,0.0],"2014-02-27":[0.0,0.0,0.2],"2014-02-28":[0.02,0.45,0.59],"2014-03-01":[0.43,0.82,0.63],"2014-03-02":[0.53,0.34,0.28],"2014-03-03":[0.56,0.33,0.36],"2014-03-04":[0.67,0.57,0.65],"2014-03-05":[0.76,0.75,0.65],"2014-03-06":[0.81,0.73,0.6],"2014-03-07":[0.89,0.78,0.66],"2014-03-08":[0.9,0.75,0.68],"2014-03-09":[0.88,0.81,0.68],"2014-03-10":[0.61,0.45,0.45],"2014-03-11":[0.01,0.01,0.02],"2014-03-12":[0.01,0.0,0.54],"2014-03-13":[0.03,0.69,0.6],"2014-03-14":[0.01,0.01,0.04],"2014-03-15":[0.04,0.16,0.14],"2014-03-16":[0.0,0.04,0.65],"2014-03-17":[0.13,0.77,0.65],"2014-03-18":[0.83,0.79,0.63],"2014-03-19":[0.68,0.47,0.37],"2014-03-20":[0.59,0.47,0.42],"2014-03-21":[0.01,0.0,0.05],"2014-03-22":[0.01,0.01,0.48],"2014-03-23":[0.22,0.54,0.58],"2014-03-24":[0.7,0.79,0.65],"2014-03-25":[0.94,0.8,0.69],"2014-03-26":[0.9,0.79,0.7],"2014-03-27":[0.93,0.84,0.75],"2014-03-28":[0.89,0.8,0.75],"2014-03-29":[0.82,0.72,0.64],"2014-03-30":[0.84,0.74,0.76],"2014-03-31":[0.86,0.72,0.68],"2014-09-01":[0.9,0.74,0.66],"2014-09-02":[0.84,0.73,0.8],"2014-09-03":[0.89,0.87,0.79],"2014-09-04":[0.97,0.88,0.79],"2014-09-05":[0.96,0.89,0.8],"2014-09-06":[0.96,0.86,0.8],"2014-09-07":[0.72,0.57,0.5],"2014-09-08":[0.95,0.86,0.77],"2014-09-09":[0.9,0.83,0.82],"2014-09-10":[0.92,0.91,0.86],"2014-09-11":[0.95,0.89,0.83],"2014-09-12":[0.95,0.89,0.81],"2014-09-13":[0.94,0.82,0.77],"2014-09-14":[0.92,0.84,0.78],"2014-09-15":[0.87,0.76,0.73],"2014-09-16":[0.95,0.86,0.78],"2014-09-17":[0.91,0.87,0.81],"2014-09-18":[0.92,0.81,0.77],"2014-09-19":[0.01,0.01,0.04],"2014-09-20":[0.0,0.0,0.02],"2014-09-21":[0.01,0.01,0.78],"2014-09-22":[0.04,0.86,0.81],"2014-09-23":[0.94,0.89,0.77],"2014-09-24":[0.01,0.0,0.0],"2014-09-25":[0.0,0.0,0.0],"2014-09-26":[0.0,0.0,0.67],"2014-09-27":[0.03,0.57,0.54],"2014-09-28":[0.58,0.64,0.61],"2014-09-29":[0.72,0.68,0.79],"2014-09-30":[0.89,0.85,0.77],"2014-10-01":[0.95,0.84,0.74],"2014-10-02":[0.91,0.83,0.77],"2014-10-03":[0.92,0.82,0.76],"2014-10-04":[0.86,0.73,0.64],"2014-10-05":[0.84,0.73,0.64],"2014-10-06":[0.74,0.58,0.52],"2014-10-07":[0.78,0.66,0.54],"2014-10-08":[0.87,0.71,0.58],"2014-10-09":[0.85,0.77,0.66],"2014-10-10":[0.85,0.74,0.64],"2014-10-11":[0.85,0.75,0.65],"2014-10-12":[0.89,0.79,0.67],"2014-10-13":[0.9,0.78,0.68],"2014-10-14":[0.9,0.8,0.71],"2014-10-15":[0.9,0.8,0.72],"2014-10-16":[0.91,0.83,0.74],"2014-10-17":[0.9,0.79,0.71],"2014-10-18":[0.91,0.79,0.72],"2014-10-19":[0.93,0.82,0.77],"2014-10-20":[0.0,0.0,0.0],"2014-10-21":[0.0,0.0,0.0],"2014-10-22":[0.0,0.0,0.62],"2014-10-23":[0.01,0.77,0.64],"2014-10-24":[0.01,0.01,0.02],"2014-10-25":[0.0,0.0,0.0],"2014-10-26":[0.0,0.0,0.58],"2014-10-27":[0.0,0.77,0.66],"2014-10-28":[0.91,0.8,0.69],"2014-10-29":[0.01,0.0,0.0],"2014-10-30":[0.0,0.0,0.0],"2014-10-31":[0.0,0.0,0.5],"2014-11-01":[0.01,0.43,0.51],"2014-11-02":[0.64,0.75,0.61],"2014-11-03":[0.89,0.7,0.62],"2014-11-04":[0.8,0.64,0.56],"2014-11-05":[0.87,0.71,0.6],"2014-11-06":[0.77,0.64,0.59],"2014-11-07":[0.84,0.74,0.62],"2014-11-08":[0.0,0.0,0.0],"2014-11-09":[0.0,0.0,0.0],"2014-11-10":[0.01,0.0,0.64],"2014-11-11":[0.0,0.01,0.01],"2014-11-12":[0.02,0.01,0.01],"2014-11-13":[0.0,0.0,0.57],"2014-11-14":[0.0,0.74,0.65],"2014-11-15":[0.9,0.78,0.62],"2014-11-16":[0.88,0.72,0.59],"2014-11-17":[0.86,0.71,0.57],"2014-11-18":[0.85,0.64,0.51],"2014-11-19":[0.85,0.64,0.52],"2014-11-20":[0.84,0.64,0.52],"2014-11-21":[0.0,0.0,0.01],"2014-11-22":[0.0,0.0,0.0],"2014-11-23":[0.0,0.0,0.04],"2014-11-24":[0.0,0.01,0.59],"2014-11-25":[0.0,0.01,0.04],"2014-11-26":[0.02,0.02,0.03],"2014-11-27":[0.0,0.01,0.59],"2014-11-28":[0.01,0.71,0.62],"2014-11-29":[0.87,0.71,0.57],"2014-11-30":[0.76,0.52,0.38],"2014-12-01":[0.63,0.5,0.42],"2014-12-02":[0.69,0.56,0.52],"2014-12-03":[0.82,0.61,0.64],"2014-12-04":[0.76,0.71,0.58],"2014-12-05":[0.85,0.65,0.49],"2014-12-06":[0.84,0.63,0.49],"2014-12-07":[0.65,0.54,0.38],"2014-12-08":[0.58,0.41,0.31],"2014-12-09":[0.01,0.01,0.48],"2014-12-10":[0.06,0.52,0.47],"2014-12-11":[0.51,0.59,0.47],"2014-12-12":[0.01,0.01,0.02],"2014-12-13":[0.01,0.0,0.02],"2014-12-14":[0.01,0.0,0.49],"2014-12-15":[0.03,0.66,0.53],"2014-12-16":[0.9,0.72,0.58],"2014-12-17":[0.31,0.31,0.18],"2014-12-18":[0.63,0.51,0.44],"2014-12-19":[0.65,0.47,0.63],"2014-12-20":[0.69,0.66,0.55],"2014-12-21":[0.53,0.42,0.27],"2014-12-22":[0.0,0.0,0.01],"2014-12-23":[0.0,0.0,0.29],"2014-12-24":[0.02,0.57,0.5],"2014-12-25":[0.54,0.68,0.59],"2014-12-26":[0.77,0.65,0.53],"2014-12-27":[0.88,0.73,0.58],"2014-12-28":[0.88,0.7,0.57],"2014-12-29":[0.79,0.69,0.59],"2014-12-30":[0.76,0.64,0.47],"2014-12-31":[0.85,0.72,0.55],"2015-01-01":[0.85,0.71,0.57],"2015-01-02":[0.86,0.74,0.61],"2015-01-03":[0.78,0.64,0.53],"2015-01-04":[0.7,0.54,0.45],"2015-01-05":[0.85,0.65,0.62],"2015-01-06":[0.79,0.72,0.62],"2015-01-07":[0.91,0.76,0.63],"2015-01-08":[0.9,0.76,0.65],"2015-01-09":[0.91,0.81,0.69],"2015-01-10":[0.91,0.82,0.7],"2015-01-11":[0.91,0.73,0.67],"2015-01-12":[0.91,0.81,0.74],"2015-01-13":[0.88,0.69,0.57],"2015-01-14":[0.73,0.54,0.45],"2015-01-15":[0.87,0.66,0.57],"2015-01-16":[0.86,0.75,0.69],"2015-01-17":[0.91,0.81,0.67],"2015-01-18":[0.91,0.78,0.66],"2015-01-19":[0.91,0.81,0.71],"2015-01-20":[0.64,0.49,0.42],"2015-01-21":[0.85,0.68,0.57],"2015-01-22":[0.79,0.61,0.69],"2015-01-23":[0.74,0.78,0.63],"2015-01-24":[0.93,0.76,0.61],"2015-01-25":[0.91,0.8,0.69],"2015-01-26":[0.92,0.78,0.65],"2015-01-27":[0.45,0.32,0.22],"2015-01-28":[0.0,0.0,0.01],"2015-01-29":[0.0,0.0,0.12],"2015-01-30":[0.0,0.01,0.22],"2015-01-31":[0.01,0.07,0.45],"2015-02-01":[0.32,0.53,0.66],"2015-02-02":[0.33,0.51,0.43],"2015-02-03":[0.01,0.01,0.01],"2015-02-04":[0.0,0.01,0.01],"2015-02-05":[0.0,0.0,0.53],"2015-02-06":[0.03,0.71,0.57],"2015-02-07":[0.83,0.62,0.55],"2015-02-08":[0.81,0.73,0.59],"2015-02-09":[0.92,0.75,0.61],"2015-02-10":[0.89,0.75,0.62],"2015-02-11":[0.89,0.74,0.62],"2015-02-12":[0.89,0.75,0.61],"2015-02-13":[0.0,0.0,0.0],"2015-02-14":[0.0,0.0,0.01],"2015-02-15":[0.0,0.0,0.49],"2015-02-16":[0.0,0.01,0.06],"2015-02-17":[0.01,0.0,0.04],"2015-02-18":[0.0,0.0,0.05],"2015-02-19":[0.0,0.0,0.04],"2015-02-20":[0.0,0.0,0.31],"2015-02-21":[0.04,0.59,0.5],"2015-02-22":[0.75,0.67,0.57],"2015-02-23":[0.79,0.74,0.6],"2015-02-24":[0.9,0.75,0.64],"2015-02-25":[0.44,0.32,0.28],"2015-02-26":[0.46,0.32,0.3],"2015-02-27":[0.0,0.0,0.31],"2015-02-28":[0.03,0.54,0.36],"2015-03-01":[0.62,0.39,0.53],"2015-03-02":[0.75,0.84,0.67],"2015-03-03":[0.94,0.79,0.63],"2015-03-04":[0.75,0.51,0.43],"2015-03-05":[0.85,0.68,0.62],"2015-03-06":[0.81,0.67,0.62],"2015-03-07":[0.0,0.0,0.02],"2015-03-08":[0.0,0.0,0.01],"2015-03-09":[0.0,0.0,0.03],"2015-03-10":[0.01,0.0,0.62],"2015-03-11":[0.05,0.82,0.7],"2015-03-12":[0.32,0.24,0.21],"2015-03-13":[0.69,0.6,0.54],"2015-03-14":[0.59,0.47,0.67],"2015-03-15":[0.1,0.53,0.44],"2015-03-16":[0.74,0.7,0.58],"2015-03-17":[0.87,0.68,0.6],"2015-03-18":[0.87,0.74,0.66],"2015-03-19":[0.9,0.79,0.66],"2015-03-20":[0.9,0.78,0.65],"2015-03-21":[0.82,0.63,0.56],"2015-03-22":[0.93,0.83,0.72],"2015-03-23":[0.93,0.87,0.75],"2015-03-24":[0.95,0.86,0.76],"2015-03-25":[0.93,0.81,0.68],"2015-03-26":[0.0,0.0,0.01],"2015-03-27":[0.0,0.0,0.0],"2015-03-28":[0.01,0.0,0.06],"2015-03-29":[0.0,0.01,0.06],"2015-03-30":[0.01,0.02,0.56],"2015-03-31":[0.0,0.01,0.05],"2015-09-01":[0.93,0.86,0.77],"2015-09-02":[0.93,0.86,0.78],"2015-09-03":[0.93,0.87,0.78],"2015-09-04":[0.93,0.87,0.79],"2015-09-05":[0.93,0.87,0.78],"2015-09-06":[0.98,0.9,0.81],"2015-09-07":[0.99,0.94,0.9],"2015-09-08":[0.0,0.0,0.01],"2015-09-09":[0.0,0.0,0.01],"2015-09-10":[0.0,0.0,0.04],"2015-09-11":[0.0,0.01,0.03],"2015-09-12":[0.02,0.01,0.71],"2015-09-13":[0.0,0.79,0.66],"2015-09-14":[0.84,0.76,0.71],"2015-09-15":[0.88,0.82,0.78],"2015-09-16":[0.89,0.8,0.75],"2015-09-17":[0.88,0.79,0.67],"2015-09-18":[0.86,0.74,0.63],"2015-09-19":[0.86,0.74,0.63],"2015-09-20":[0.9,0.74,0.64],"2015-09-21":[0.89,0.73,0.6],"2015-09-22":[0.85,0.73,0.59],"2015-09-23":[0.86,0.74,0.6],"2015-09-24":[0.87,0.73,0.61],"2015-09-25":[0.58,0.49,0.38],"2015-09-26":[0.0,0.0,0.02],"2015-09-27":[0.0,0.0,0.02],"2015-09-28":[0.0,0.0,0.08],"2015-09-29":[0.02,0.01,0.7],"2015-09-30":[0.01,0.01,0.04],"2015-10-01":[0.02,0.02,0.02],"2015-10-02":[0.0,0.01,0.67],"2015-10-03":[0.0,0.02,0.04],"2015-10-04":[0.02,0.02,0.02],"2015-10-05":[0.0,0.0,0.7],"2015-10-06":[0.01,0.76,0.65],"2015-10-07":[0.79,0.71,0.63],"2015-10-08":[0.85,0.73,0.66],"2015-10-09":[0.82,0.74,0.68],"2015-10-10":[0.72,0.56,0.41],"2015-10-11":[0.0,0.0,0.01],"2015-10-12":[0.0,0.0,0.0],"2015-10-13":[0.0,0.0,0.05],"2015-10-14":[0.0,0.01,0.57],"2015-10-15":[0.07,0.74,0.59],"2015-10-16":[0.8,0.74,0.59],"2015-10-17":[0.87,0.73,0.64],"2015-10-18":[0.87,0.74,0.64],"2015-10-19":[0.87,0.73,0.64],"2015-10-20":[0.85,0.73,0.65],"2015-10-21":[0.86,0.75,0.68],"2015-10-22":[0.87,0.72,0.63],"2015-10-23":[0.5,0.41,0.32],"2015-10-24":[0.59,0.45,0.37],"2015-10-25":[0.49,0.34,0.61],"2015-10-26":[0.74,0.76,0.69],"2015-10-27":[0.04,0.01,0.01],"2015-10-28":[0.0,0.01,0.01],"2015-10-29":[0.0,0.0,0.67],"2015-10-30":[0.0,0.58,0.5],"2015-10-31":[0.8,0.73,0.57],"2015-11-01":[0.81,0.68,0.59],"2015-11-02":[0.0,0.0,0.0],"2015-11-03":[0.0,0.0,0.0],"2015-11-04":[0.0,0.0,0.18],"2015-11-05":[0.02,0.55,0.5],"2015-11-06":[0.59,0.58,0.55],"2015-11-07":[0.75,0.61,0.55],"2015-11-08":[0.1,0.13,0.08],"2015-11-09":[0.52,0.34,0.31],"2015-11-10":[0.6,0.59,0.66],"2015-11-11":[0.27,0.59,0.48],"2015-11-12":[0.84,0.74,0.57],"2015-11-13":[0.75,0.57,0.47],"2015-11-14":[0.77,0.51,0.44],"2015-11-15":[0.79,0.61,0.51],"2015-11-16":[0.76,0.65,0.56],"2015-11-17":[0.08,0.31,0.22],"2015-11-18":[0.0,0.0,0.0],"2015-11-19":[0.0,0.0,0.0],"2015-11-20":[0.0,0.0,0.01],"2015-11-21":[0.0,0.0,0.47],"2015-11-22":[0.03,0.65,0.58],"2015-11-23":[0.4,0.57,0.48],"2015-11-24":[0.78,0.7,0.6],"2015-11-25":[0.0,0.0,0.01],"2015-11-26":[0.0,0.0,0.0],"2015-11-27":[0.0,0.0,0.62],"2015-11-28":[0.0,0.01,0.04],"2015-11-29":[0.01,0.0,0.01],"2015-11-30":[0.0,0.0,0.4],"2015-12-01":[0.02,0.44,0.47],"2015-12-02":[0.38,0.49,0.43],"2015-12-03":[0.52,0.49,0.37],"2015-12-04":[0.0,0.0,0.01],"2015-12-05":[0.0,0.0,0.0],"2015-12-06":[0.0,0.0,0.02],"2015-12-07":[0.0,0.01,0.47],"2015-12-08":[0.08,0.7,0.61],"2015-12-09":[0.84,0.75,0.6],"2015-12-10":[0.0,0.0,0.01],"2015-12-11":[0.0,0.0,0.01],"2015-12-12":[0.0,0.0,0.08],"2015-12-13":[0.0,0.01,0.03],"2015-12-14":[0.01,0.02,0.64],"2015-12-15":[0.02,0.57,0.4],"2015-12-16":[0.62,0.55,0.4],"2015-12-17":[0.72,0.55,0.55],"2015-12-18":[0.72,0.67,0.57],"2015-12-19":[0.3,0.36,0.26],"2015-12-20":[0.0,0.0,0.01],"2015-12-21":[0.0,0.0,0.01],"2015-12-22":[0.0,0.0,0.67],"2015-12-23":[0.05,0.78,0.7],"2015-12-24":[0.62,0.59,0.49],"2015-12-25":[0.7,0.55,0.4],"2015-12-26":[0.76,0.62,0.45],"2015-12-27":[0.08,0.34,0.31],"2015-12-28":[0.38,0.54,0.47],"2015-12-29":[0.03,0.01,0.17],"2015-12-30":[0.0,0.0,0.02],"2015-12-31":[0.01,0.01,0.4],"2016-01-01":[0.0,0.0,0.05],"2016-01-02":[0.01,0.0,0.02],"2016-01-03":[0.0,0.01,0.56],"2016-01-04":[0.04,0.76,0.64],"2016-01-05":[0.84,0.79,0.71],"2016-01-06":[0.74,0.67,0.53],"2016-01-07":[0.74,0.5,0.39],"2016-01-08":[0.78,0.65,0.52],"2016-01-09":[0.72,0.58,0.45],"2016-01-10":[0.71,0.58,0.47],"2016-01-11":[0.04,0.02,0.13],"2016-01-12":[0.0,0.0,0.03],"2016-01-13":[0.0,0.0,0.09],"2016-01-14":[0.0,0.0,0.0],"2016-01-15":[0.0,0.0,0.0],"2016-01-16":[0.0,0.0,0.07],"2016-01-17":[0.0,0.01,0.56],"2016-01-18":[0.09,0.75,0.61],"2016-01-19":[0.86,0.79,0.62],"2016-01-20":[0.88,0.69,0.59],"2016-01-21":[0.88,0.72,0.6],"2016-01-22":[0.88,0.74,0.62],"2016-01-23":[0.88,0.72,0.6],"2016-01-24":[0.87,0.72,0.59],"2016-01-25":[0.92,0.79,0.68],"2016-01-26":[0.0,0.0,0.01],"2016-01-27":[0.0,0.0,0.01],"2016-01-28":[0.0,0.0,0.77],"2016-01-29":[0.01,0.76,0.64],"2016-01-30":[0.79,0.71,0.56],"2016-01-31":[0.0,0.0,0.0],"2016-02-01":[0.0,0.0,0.0],"2016-02-02":[0.0,0.0,0.04],"2016-02-03":[0.0,0.0,0.01],"2016-02-04":[0.0,0.0,0.04],"2016-02-05":[0.0,0.0,0.02],"2016-02-06":[0.0,0.02,0.3],"2016-02-07":[0.1,0.57,0.69],"2016-02-08":[0.61,0.81,0.66],"2016-02-09":[0.92,0.73,0.61],"2016-02-10":[0.91,0.79,0.65],"2016-02-11":[0.89,0.76,0.62],"2016-02-12":[0.58,0.39,0.32],"2016-02-13":[0.84,0.63,0.48],"2016-02-14":[0.72,0.57,0.71],"2016-02-15":[0.65,0.76,0.63],"2016-02-16":[0.87,0.71,0.53],"2016-02-17":[0.68,0.5,0.42],"2016-02-18":[0.71,0.54,0.39],"2016-02-19":[0.83,0.63,0.58],"2016-02-20":[0.71,0.58,0.56],"2016-02-21":[0.79,0.71,0.51],"2016-02-22":[0.0,0.0,0.0],"2016-02-23":[0.0,0.0,0.0],"2016-02-24":[0.0,0.0,0.0],"2016-02-25":[0.0,0.0,0.05],"2016-02-26":[0.0,0.0,0.46],"2016-02-27":[0.04,0.47,0.31],"2016-02-28":[0.01,0.0,0.01],"2016-02-29":[0.0,0.0,0.03],"2016-03-01":[0.0,0.0,0.22],"2016-03-02":[0.0,0.01,0.09],"2016-03-03":[0.0,0.04,0.42],"2016-03-04":[0.19,0.6,0.6],"2016-03-05":[0.73,0.79,0.67],"2016-03-06":[0.95,0.79,0.67],"2016-03-07":[0.91,0.8,0.67],"2016-03-08":[0.82,0.66,0.57],"2016-03-09":[0.0,0.0,0.0],"2016-03-10":[0.0,0.0,0.01],"2016-03-11":[0.0,0.0,0.62],"2016-03-12":[0.03,0.81,0.71],"2016-03-13":[0.92,0.83,0.66],"2016-03-14":[0.9,0.76,0.61],"2016-03-15":[0.88,0.76,0.6],"2016-03-16":[0.88,0.75,0.6],"2016-03-17":[0.88,0.76,0.6],"2016-03-18":[0.89,0.77,0.61],"2016-03-19":[0.89,0.81,0.69],"2016-03-20":[0.92,0.81,0.65],"2016-03-21":[0.92,0.82,0.66],"2016-03-22":[0.83,0.73,0.62],"2016-03-23":[0.78,0.55,0.37],"2016-03-24":[0.0,0.0,0.0],"2016-03-25":[0.0,0.0,0.0],"2016-03-26":[0.0,0.0,0.62],"2016-03-27":[0.03,0.68,0.64],"2016-03-28":[0.85,0.85,0.73],"2016-03-29":[0.91,0.74,0.62],"2016-03-30":[0.86,0.71,0.6],"2016-03-31":[0.85,0.69,0.59],"2016-09-01":[0.01,0.76,0.75],"2016-09-02":[0.88,0.88,0.75],"2016-09-03":[0.83,0.75,0.65],"2016-09-04":[0.93,0.85,0.72],"2016-09-05":[0.84,0.76,0.66],"2016-09-06":[0.9,0.81,0.73],"2016-09-07":[0.92,0.87,0.77],"2016-09-08":[0.94,0.86,0.82],"2016-09-09":[0.92,0.86,0.8],"2016-09-10":[0.92,0.86,0.78],"2016-09-11":[0.92,0.86,0.77],"2016-09-12":[0.91,0.83,0.75],"2016-09-13":[0.93,0.83,0.75],"2016-09-14":[0.92,0.84,0.75],"2016-09-15":[0.91,0.78,0.68],"2016-09-16":[0.92,0.83,0.72],"2016-09-17":[0.93,0.82,0.73],"2016-09-18":[0.93,0.81,0.74],"2016-09-19":[0.63,0.53,0.29],"2016-09-20":[0.88,0.52,0.49],"2016-09-21":[0.72,0.61,0.66],"2016-09-22":[0.8,0.79,0.62],"2016-09-23":[0.92,0.78,0.66],"2016-09-24":[0.9,0.76,0.63],"2016-09-25":[0.91,0.76,0.64],"2016-09-26":[0.86,0.75,0.64],"2016-09-27":[0.86,0.77,0.66],"2016-09-28":[0.9,0.82,0.74],"2016-09-29":[0.95,0.9,0.88],"2016-09-30":[0.95,0.9,0.88],"2016-10-01":[0.95,0.9,0.87],"2016-10-02":[0.94,0.89,0.86],"2016-10-03":[0.77,0.7,0.73],"2016-10-04":[0.82,0.81,0.77],"2016-10-05":[0.63,0.61,0.5],"2016-10-06":[0.91,0.78,0.6],"2016-10-07":[0.85,0.7,0.56],"2016-10-08":[0.87,0.71,0.57],"2016-10-09":[0.85,0.64,0.52],"2016-10-10":[0.86,0.7,0.58],"2016-10-11":[0.84,0.64,0.54],"2016-10-12":[0.87,0.65,0.53],"2016-10-13":[0.61,0.4,0.3],"2016-10-14":[0.0,0.0,0.0],"2016-10-15":[0.0,0.0,0.07],"2016-10-16":[0.0,0.0,0.61],"2016-10-17":[0.09,0.82,0.67],"2016-10-18":[0.87,0.79,0.66],"2016-10-19":[0.9,0.82,0.72],"2016-10-20":[0.84,0.71,0.64],"2016-10-21":[0.86,0.78,0.69],"2016-10-22":[0.9,0.8,0.7],"2016-10-23":[0.9,0.74,0.62],"2016-10-24":[0.87,0.67,0.53],"2016-10-25":[0.89,0.71,0.56],"2016-10-26":[0.0,0.0,0.0],"2016-10-27":[0.0,0.0,0.01],"2016-10-28":[0.0,0.0,0.54],"2016-10-29":[0.01,0.67,0.52],"2016-10-30":[0.89,0.59,0.43],"2016-10-31":[0.8,0.59,0.51],"2016-11-01":[0.77,0.63,0.55],"2016-11-02":[0.63,0.41,0.29],"2016-11-03":[0.82,0.67,0.48],"2016-11-04":[0.79,0.57,0.67],"2016-11-05":[0.74,0.7,0.63],"2016-11-06":[0.89,0.73,0.56],"2016-11-07":[0.87,0.69,0.58],"2016-11-08":[0.85,0.69,0.58],"2016-11-09":[0.86,0.69,0.58],"2016-11-10":[0.87,0.68,0.58],"2016-11-11":[0.86,0.67,0.58],"2016-11-12":[0.84,0.64,0.5],"2016-11-13":[0.86,0.74,0.65],"2016-11-14":[0.86,0.75,0.66],"2016-11-15":[0.86,0.75,0.66],"2016-11-16":[0.86,0.75,0.65],"2016-11-17":[0.86,0.75,0.62],"2016-11-18":[0.86,0.73,0.62],"2016-11-19":[0.84,0.73,0.62],"2016-11-20":[0.86,0.74,0.62],"2016-11-21":[0.87,0.72,0.62],"2016-11-22":[0.84,0.73,0.63],"2016-11-23":[0.87,0.8,0.68],"2016-11-24":[0.89,0.8,0.7],"2016-11-25":[0.87,0.77,0.66],"2016-11-26":[0.94,0.79,0.73],"2016-11-27":[0.86,0.79,0.74],"2016-11-28":[0.0,0.0,0.01],"2016-11-29":[0.0,0.0,0.01],"2016-11-30":[0.0,0.0,0.47],"2016-12-01":[0.01,0.64,0.62],"2016-12-02":[0.37,0.44,0.31],"2016-12-03":[0.5,0.41,0.3],"2016-12-04":[0.62,0.53,0.63],"2016-12-05":[0.63,0.77,0.62],"2016-12-06":[0.86,0.77,0.62],"2016-12-07":[0.86,0.74,0.61],"2016-12-08":[0.86,0.75,0.64],"2016-12-09":[0.0,0.0,0.0],"2016-12-10":[0.0,0.0,0.0],"2016-12-11":[0.0,0.0,0.44],"2016-12-12":[0.0,0.67,0.61],"2016-12-13":[0.0,0.01,0.02],"2016-12-14":[0.0,0.0,0.01],"2016-12-15":[0.0,0.0,0.6],"2016-12-16":[0.01,0.75,0.67],"2016-12-17":[0.63,0.5,0.35],"2016-12-18":[0.57,0.37,0.32],"2016-12-19":[0.01,0.03,0.41],"2016-12-20":[0.0,0.0,0.06],"2016-12-21":[0.0,0.01,0.02],"2016-12-22":[0.0,0.0,0.32],"2016-12-23":[0.01,0.03,0.46],"2016-12-24":[0.3,0.74,0.6],"2016-12-25":[0.72,0.68,0.6],"2016-12-26":[0.81,0.76,0.7],"2016-12-27":[0.87,0.78,0.67],"2016-12-28":[0.88,0.74,0.66],"2016-12-29":[0.81,0.69,0.49],"2016-12-30":[0.7,0.55,0.43],"2016-12-31":[0.83,0.64,0.58],"2017-01-01":[0.85,0.74,0.69],"2017-01-02":[0.01,0.0,0.01],"2017-01-03":[0.0,0.0,0.0],"2017-01-04":[0.0,0.0,0.66],"2017-01-05":[0.02,0.78,0.74],"2017-01-06":[0.92,0.82,0.68],"2017-01-07":[0.9,0.79,0.63],"2017-01-08":[0.88,0.72,0.53],"2017-01-09":[0.87,0.68,0.55],"2017-01-10":[0.85,0.68,0.55],"2017-01-11":[0.81,0.66,0.45],"2017-01-12":[0.84,0.74,0.66],"2017-01-13":[0.89,0.8,0.75],"2017-01-14":[0.93,0.85,0.73],"2017-01-15":[0.66,0.5,0.33],"2017-01-16":[0.86,0.6,0.32],"2017-01-17":[0.04,0.06,0.52],"2017-01-18":[0.14,0.66,0.61],"2017-01-19":[0.72,0.69,0.62],"2017-01-20":[0.86,0.81,0.69],"2017-01-21":[0.73,0.59,0.47],"2017-01-22":[0.78,0.58,0.37],"2017-01-23":[0.37,0.37,0.42],"2017-01-24":[0.04,0.27,0.39],"2017-01-25":[0.01,0.03,0.37],"2017-01-26":[0.23,0.62,0.51],"2017-01-27":[0.64,0.66,0.57],"2017-01-28":[0.37,0.4,0.36],"2017-01-29":[0.59,0.47,0.36],"2017-01-30":[0.79,0.63,0.57],"2017-01-31":[0.04,0.35,0.32],"2017-02-01":[0.34,0.32,0.26],"2017-02-02":[0.47,0.46,0.61],"2017-02-03":[0.72,0.73,0.59],"2017-02-04":[0.82,0.7,0.62],"2017-02-05":[0.67,0.48,0.43],"2017-02-06":[0.68,0.6,0.39],"2017-02-07":[0.8,0.62,0.7],"2017-02-08":[0.0,0.0,0.02],"2017-02-09":[0.0,0.0,0.0],"2017-02-10":[0.0,0.0,0.02],"2017-02-11":[0.0,0.0,0.44],"2017-02-12":[0.0,0.01,0.03],"2017-02-13":[0.0,0.0,0.01],"2017-02-14":[0.0,0.0,0.36],"2017-02-15":[0.02,0.63,0.56],"2017-02-16":[0.52,0.63,0.59],"2017-02-17":[0.77,0.74,0.62],"2017-02-18":[0.89,0.77,0.62],"2017-02-19":[0.79,0.65,0.62],"2017-02-20":[0.81,0.61,0.52],"2017-02-21":[0.84,0.72,0.63],"2017-02-22":[0.81,0.67,0.59],"2017-02-23":[0.1,0.29,0.21],"2017-02-24":[0.35,0.29,0.27],"2017-02-25":[0.63,0.56,0.71],"2017-02-26":[0.54,0.71,0.62],"2017-02-27":[0.85,0.76,0.61],"2017-02-28":[0.88,0.78,0.64],"2017-03-01":[0.8,0.62,0.48],"2017-03-02":[0.74,0.56,0.42],"2017-03-03":[0.76,0.62,0.49],"2017-03-04":[0.73,0.55,0.44],"2017-03-05":[0.73,0.57,0.39],"2017-03-06":[0.81,0.54,0.56],"2017-03-07":[0.82,0.76,0.64],"2017-03-08":[0.91,0.78,0.68],"2017-03-09":[0.93,0.79,0.66],"2017-03-10":[0.59,0.42,0.32],"2017-03-11":[0.78,0.6,0.49],"2017-03-12":[0.0,0.0,0.03],"2017-03-13":[0.0,0.01,0.02],"2017-03-14":[0.03,0.01,0.65],"2017-03-15":[0.01,0.85,0.75],"2017-03-16":[0.38,0.29,0.2],"2017-03-17":[0.8,0.56,0.5],"2017-03-18":[0.0,0.01,0.3],"2017-03-19":[0.05,0.46,0.3],"2017-03-20":[0.64,0.41,0.63],"2017-03-21":[0.78,0.83,0.75],"2017-03-22":[0.93,0.83,0.73],"2017-03-23":[0.91,0.79,0.75],"2017-03-24":[0.91,0.82,0.77],"2017-03-25":[0.93,0.87,0.82],"2017-03-26":[0.76,0.58,0.52],"2017-03-27":[0.83,0.68,0.62],"2017-03-28":[0.85,0.67,0.76],"2017-03-29":[0.76,0.84,0.71],"2017-03-30":[0.94,0.84,0.68],"2017-03-31":[0.91,0.8,0.7],"2017-09-01":[0.96,0.91,0.84],"2017-09-02":[0.96,0.89,0.84],"2017-09-03":[0.94,0.89,0.86],"2017-09-04":[0.95,0.9,0.87],"2017-09-05":[0.95,0.9,0.79],"2017-09-06":[0.96,0.86,0.76],"2017-09-07":[0.93,0.85,0.77],"2017-09-08":[0.96,0.89,0.84],"2017-09-09":[0.95,0.9,0.84],"2017-09-10":[0.95,0.9,0.83],"2017-09-11":[0.95,0.9,0.83],"2017-09-12":[0.96,0.91,0.83],"2017-09-13":[0.96,0.88,0.84],"2017-09-14":[0.97,0.93,0.9],"2017-09-15":[0.97,0.9,0.86],"2017-09-16":[0.97,0.92,0.88],"2017-09-17":[0.97,0.92,0.91],"2017-09-18":[0.96,0.92,0.9],"2017-09-19":[0.96,0.92,0.89],"2017-09-20":[0.96,0.92,0.85],"2017-09-21":[0.95,0.87,0.81],"2017-09-22":[0.92,0.86,0.8],"2017-09-23":[0.93,0.87,0.81],"2017-09-24":[0.95,0.86,0.82],"2017-09-25":[0.78,0.7,0.66],"2017-09-26":[0.74,0.7,0.62],"2017-09-27":[0.84,0.7,0.75],"2017-09-28":[0.67,0.68,0.68],"2017-09-29":[0.75,0.73,0.72],"2017-09-30":[0.89,0.77,0.75],"2017-10-01":[0.0,0.02,0.06],"2017-10-02":[0.01,0.01,0.03],"2017-10-03":[0.01,0.01,0.67],"2017-10-04":[0.05,0.81,0.77],"2017-10-05":[0.87,0.81,0.7],"2017-10-06":[0.88,0.73,0.67],"2017-10-07":[0.89,0.79,0.68],"2017-10-08":[0.83,0.69,0.59],"2017-10-09":[0.89,0.68,0.53],"2017-10-10":[0.77,0.64,0.58],"2017-10-11":[0.64,0.62,0.5],"2017-10-12":[0.88,0.68,0.59],"2017-10-13":[0.89,0.71,0.63],"2017-10-14":[0.9,0.77,0.68],"2017-10-15":[0.9,0.79,0.68],"2017-10-16":[0.92,0.79,0.68],"2017-10-17":[0.92,0.81,0.69],"2017-10-18":[0.91,0.79,0.73],"2017-10-19":[0.7,0.58,0.44],"2017-10-20":[0.84,0.65,0.51],"2017-10-21":[0.4,0.35,0.37],"2017-10-22":[0.0,0.0,0.01],"2017-10-23":[0.0,0.0,0.04],"2017-10-24":[0.01,0.01,0.62],"2017-10-25":[0.06,0.48,0.38],"2017-10-26":[0.66,0.5,0.44],"2017-10-27":[0.0,0.01,0.09],"2017-10-28":[0.0,0.0,0.02],"2017-10-29":[0.02,0.01,0.44],"2017-10-30":[0.01,0.01,0.03],"2017-10-31":[0.01,0.01,0.04],"2017-11-01":[0.0,0.0,0.66],"2017-11-02":[0.02,0.77,0.64],"2017-11-03":[0.83,0.75,0.51],"2017-11-04":[0.63,0.45,0.36],"2017-11-05":[0.59,0.44,0.43],"2017-11-06":[0.69,0.55,0.68],"2017-11-07":[0.75,0.8,0.68],"2017-11-08":[0.78,0.66,0.58],"2017-11-09":[0.83,0.67,0.58],"2017-11-10":[0.72,0.61,0.54],"2017-11-11":[0.8,0.7,0.62],"2017-11-12":[0.87,0.69,0.62],"2017-11-13":[0.83,0.72,0.6],"2017-11-14":[0.91,0.78,0.65],"2017-11-15":[0.9,0.78,0.64],"2017-11-16":[0.62,0.56,0.46],"2017-11-17":[0.89,0.75,0.64],"2017-11-18":[0.0,0.0,0.01],"2017-11-19":[0.0,0.0,0.01],"2017-11-20":[0.02,0.0,0.67],"2017-11-21":[0.0,0.54,0.43],"2017-11-22":[0.85,0.64,0.56],"2017-11-23":[0.82,0.68,0.61],"2017-11-24":[0.84,0.72,0.56],"2017-11-25":[0.75,0.61,0.51],"2017-11-26":[0.81,0.67,0.55],"2017-11-27":[0.79,0.62,0.5],"2017-11-28":[0.85,0.64,0.52],"2017-11-29":[0.84,0.72,0.56],"2017-11-30":[0.01,0.0,0.0],"2017-12-01":[0.0,0.0,0.0],"2017-12-02":[0.0,0.0,0.52],"2017-12-03":[0.02,0.56,0.49],"2017-12-04":[0.81,0.65,0.54],"2017-12-05":[0.76,0.61,0.45],"2017-12-06":[0.0,0.0,0.0],"2017-12-07":[0.0,0.0,0.0],"2017-12-08":[0.0,0.0,0.51],"2017-12-09":[0.01,0.63,0.53],"2017-12-10":[0.82,0.68,0.55],"2017-12-11":[0.87,0.67,0.54],"2017-12-12":[0.85,0.64,0.53],"2017-12-13":[0.84,0.65,0.53],"2017-12-14":[0.85,0.68,0.55],"2017-12-15":[0.85,0.67,0.52],"2017-12-16":[0.9,0.81,0.73],"2017-12-17":[0.89,0.77,0.7],"2017-12-18":[0.89,0.77,0.65],"2017-12-19":[0.79,0.58,0.45],"2017-12-20":[0.78,0.63,0.49],"2017-12-21":[0.0,0.0,0.0],"2017-12-22":[0.0,0.0,0.0],"2017-12-23":[0.0,0.0,0.27],"2017-12-24":[0.0,0.03,0.39],"2017-12-25":[0.0,0.01,0.11],"2017-12-26":[0.0,0.0,0.01],"2017-12-27":[0.0,0.0,0.04],"2017-12-28":[0.0,0.0,0.08],"2017-12-29":[0.0,0.0,0.1],"2017-12-30":[0.0,0.0,0.15],"2017-12-31":[0.01,0.0,0.5],"2018-01-01":[0.11,0.77,0.66],"2018-01-02":[0.01,0.0,0.01],"2018-01-03":[0.01,0.01,0.01],"2018-01-04":[0.01,0.0,0.71],"2018-01-05":[0.03,0.6,0.55],"2018-01-06":[0.01,0.01,0.02],"2018-01-07":[0.0,0.0,0.0],"2018-01-08":[0.0,0.0,0.54],"2018-01-09":[0.0,0.01,0.01],"2018-01-10":[0.0,0.0,0.0],"2018-01-11":[0.0,0.0,0.04],"2018-01-12":[0.0,0.0,0.59],"2018-01-13":[0.08,0.61,0.47],"2018-01-14":[0.65,0.65,0.49],"2018-01-15":[0.61,0.51,0.43],"2018-01-16":[0.66,0.48,0.38],"2018-01-17":[0.55,0.39,0.4],"2018-01-18":[0.01,0.01,0.07],"2018-01-19":[0.02,0.03,0.35],"2018-01-20":[0.11,0.43,0.49],"2018-01-21":[0.45,0.69,0.64],"2018-01-22":[0.87,0.74,0.59],"2018-01-23":[0.85,0.74,0.61],"2018-01-24":[0.86,0.74,0.62],"2018-01-25":[0.77,0.65,0.55],"2018-01-26":[0.85,0.69,0.62],"2018-01-27":[0.83,0.67,0.6],"2018-01-28":[0.89,0.79,0.73],"2018-01-29":[0.77,0.66,0.61],"2018-01-30":[0.83,0.68,0.57],"2018-01-31":[0.02,0.02,0.08],"2018-02-01":[0.13,0.46,0.38],"2018-02-02":[0.4,0.51,0.67],"2018-02-03":[0.76,0.82,0.64],"2018-02-04":[0.93,0.79,0.58],"2018-02-05":[0.88,0.73,0.57],"2018-02-06":[0.89,0.73,0.57],"2018-02-07":[0.89,0.72,0.58],"2018-02-08":[0.77,0.64,0.47],"2018-02-09":[0.8,0.66,0.58],"2018-02-10":[0.0,0.0,0.0],"2018-02-11":[0.0,0.0,0.0],"2018-02-12":[0.0,0.0,0.07],"2018-02-13":[0.0,0.01,0.64],"2018-02-14":[0.05,0.82,0.69],"2018-02-15":[0.86,0.83,0.68],"2018-02-16":[0.81,0.59,0.47],"2018-02-17":[0.72,0.53,0.4],"2018-02-18":[0.54,0.43,0.4],"2018-02-19":[0.0,0.0,0.01],"2018-02-20":[0.0,0.0,0.01],"2018-02-21":[0.0,0.0,0.52],"2018-02-22":[0.02,0.7,0.63],"2018-02-23":[0.86,0.8,0.7],"2018-02-24":[0.94,0.78,0.65],"2018-02-25":[0.67,0.4,0.38],"2018-02-26":[0.67,0.52,0.43],"2018-02-27":[0.53,0.4,0.67],"2018-02-28":[0.0,0.01,0.0],"2018-03-01":[0.01,0.0,0.0],"2018-03-02":[0.0,0.0,0.35],"2018-03-03":[0.02,0.59,0.57],"2018-03-04":[0.73,0.71,0.67],"2018-03-05":[0.76,0.61,0.51],"2018-03-06":[0.78,0.63,0.55],"2018-03-07":[0.81,0.64,0.64],"2018-03-08":[0.78,0.74,0.71],"2018-03-09":[0.86,0.75,0.7],"2018-03-10":[0.85,0.73,0.65],"2018-03-11":[0.89,0.77,0.68],"2018-03-12":[0.79,0.57,0.42],"2018-03-13":[0.78,0.57,0.42],"2018-03-14":[0.76,0.52,0.5],"2018-03-15":[0.74,0.61,0.43],"2018-03-16":[0.76,0.65,0.53],"2018-03-17":[0.01,0.01,0.03],"2018-03-18":[0.16,0.41,0.37],"2018-03-19":[0.02,0.03,0.55],"2018-03-20":[0.03,0.48,0.44],"2018-03-21":[0.65,0.6,0.6],"2018-03-22":[0.76,0.7,0.69],"2018-03-23":[0.87,0.78,0.7],"2018-03-24":[0.01,0.0,0.0],"2018-03-25":[0.0,0.0,0.0],"2018-03-26":[0.0,0.0,0.61],"2018-03-27":[0.02,0.59,0.6],"2018-03-28":[0.51,0.74,0.62],"2018-03-29":[0.01,0.0,0.01],"2018-03-30":[0.0,0.0,0.0],"2018-03-31":[0.0,0.0,0.36],"2018-09-01":[0.83,0.76,0.63],"2018-09-02":[0.0,0.0,0.0],"2018-09-03":[0.0,0.0,0.03],"2018-09-04":[0.0,0.01,0.86],"2018-09-05":[0.02,0.9,0.86],"2018-09-06":[0.94,0.9,0.87],"2018-09-07":[0.94,0.88,0.81],"2018-09-08":[0.94,0.89,0.83],"2018-09-09":[0.94,0.89,0.83],"2018-09-10":[0.94,0.89,0.83],"2018-09-11":[0.95,0.91,0.86],"2018-09-12":[0.95,0.85,0.79],"2018-09-13":[0.93,0.84,0.72],"2018-09-14":[0.0,0.0,0.0],"2018-09-15":[0.0,0.0,0.04],"2018-09-16":[0.0,0.0,0.03],"2018-09-17":[0.0,0.01,0.02],"2018-09-18":[0.01,0.01,0.57],"2018-09-19":[0.01,0.63,0.66],"2018-09-20":[0.03,0.0,0.02],"2018-09-21":[0.03,0.01,0.02],"2018-09-22":[0.0,0.0,0.72],"2018-09-23":[0.02,0.68,0.5],"2018-09-24":[0.6,0.47,0.36],"2018-09-25":[0.71,0.5,0.61],"2018-09-26":[0.75,0.76,0.66],"2018-09-27":[0.01,0.0,0.01],"2018-09-28":[0.01,0.0,0.0],"2018-09-29":[0.0,0.0,0.7],"2018-09-30":[0.02,0.73,0.59],"2018-10-01":[0.87,0.75,0.66],"2018-10-02":[0.59,0.55,0.5],"2018-10-03":[0.65,0.54,0.43],"2018-10-04":[0.77,0.53,0.58],"2018-10-05":[0.69,0.74,0.66],"2018-10-06":[0.85,0.79,0.68],"2018-10-07":[0.79,0.63,0.6],"2018-10-08":[0.01,0.0,0.0],"2018-10-09":[0.0,0.0,0.01],"2018-10-10":[0.0,0.0,0.07],"2018-10-11":[0.0,0.01,0.03],"2018-10-12":[0.02,0.01,0.71],"2018-10-13":[0.02,0.68,0.58],"2018-10-14":[0.71,0.56,0.56],"2018-10-15":[0.82,0.62,0.56],"2018-10-16":[0.86,0.72,0.62],"2018-10-17":[0.76,0.66,0.59],"2018-10-18":[0.73,0.56,0.44],"2018-10-19":[0.69,0.54,0.5],"2018-10-20":[0.82,0.73,0.69],"2018-10-21":[0.86,0.78,0.7],"2018-10-22":[0.89,0.77,0.67],"2018-10-23":[0.0,0.0,0.0],"2018-10-24":[0.0,0.0,0.0],"2018-10-25":[0.0,0.0,0.03],"2018-10-26":[0.0,0.0,0.04],"2018-10-27":[0.0,0.01,0.05],"2018-10-28":[0.01,0.01,0.54],"2018-10-29":[0.04,0.72,0.6],"2018-10-30":[0.77,0.67,0.53],"2018-10-31":[0.81,0.67,0.58],"2018-11-01":[0.0,0.0,0.0],"2018-11-02":[0.01,0.0,0.01],"2018-11-03":[0.0,0.0,0.41],"2018-11-04":[0.05,0.64,0.53],"2018-11-05":[0.73,0.54,0.55],"2018-11-06":[0.77,0.65,0.6],"2018-11-07":[0.89,0.74,0.58],"2018-11-08":[0.86,0.7,0.59],"2018-11-09":[0.85,0.71,0.58],"2018-11-10":[0.84,0.65,0.55],"2018-11-11":[0.9,0.77,0.67],"2018-11-12":[0.9,0.77,0.67],"2018-11-13":[0.87,0.74,0.61],"2018-11-14":[0.71,0.59,0.43],"2018-11-15":[0.72,0.57,0.44],"2018-11-16":[0.0,0.0,0.01],"2018-11-17":[0.0,0.0,0.05],"2018-11-18":[0.0,0.0,0.07],"2018-11-19":[0.0,0.02,0.05],"2018-11-20":[0.02,0.02,0.67],"2018-11-21":[0.01,0.75,0.65],"2018-11-22":[0.86,0.78,0.61],"2018-11-23":[0.0,0.0,0.0],"2018-11-24":[0.0,0.0,0.01],"2018-11-25":[0.0,0.0,0.63],"2018-11-26":[0.0,0.73,0.6],"2018-11-27":[0.88,0.72,0.57],"2018-11-28":[0.64,0.5,0.33],"2018-11-29":[0.0,0.0,0.0],"2018-11-30":[0.0,0.0,0.37],"2018-12-01":[0.01,0.47,0.57],"2018-12-02":[0.73,0.71,0.56],"2018-12-03":[0.88,0.65,0.48],"2018-12-04":[0.83,0.61,0.47],"2018-12-05":[0.83,0.61,0.47],"2018-12-06":[0.83,0.61,0.47],"2018-12-07":[0.82,0.6,0.47],"2018-12-08":[0.88,0.75,0.61],"2018-12-09":[0.88,0.79,0.59],"2018-12-10":[0.88,0.79,0.59],"2018-12-11":[0.88,0.79,0.59],"2018-12-12":[0.88,0.79,0.58],"2018-12-13":[0.89,0.79,0.59],"2018-12-14":[0.88,0.81,0.58],"2018-12-15":[0.0,0.0,0.0],"2018-12-16":[0.0,0.0,0.01],"2018-12-17":[0.0,0.0,0.66],"2018-12-18":[0.02,0.66,0.59],"2018-12-19":[0.85,0.73,0.66],"2018-12-20":[0.87,0.73,0.63],"2018-12-21":[0.86,0.72,0.58],"2018-12-22":[0.76,0.53,0.49],"2018-12-23":[0.5,0.38,0.3],"2018-12-24":[0.0,0.0,0.34],"2018-12-25":[0.13,0.71,0.69],"2018-12-26":[0.72,0.79,0.74],"2018-12-27":[0.9,0.79,0.67],"2018-12-28":[0.63,0.5,0.33],"2018-12-29":[0.59,0.36,0.3],"2018-12-30":[0.46,0.42,0.61],"2018-12-31":[0.68,0.71,0.63],"2019-01-01":[0.85,0.8,0.68],"2019-01-02":[0.83,0.73,0.63],"2019-01-03":[0.86,0.75,0.66],"2019-01-04":[0.89,0.74,0.66],"2019-01-05":[0.0,0.0,0.01],"2019-01-06":[0.0,0.0,0.0],"2019-01-07":[0.0,0.0,0.25],"2019-01-08":[0.01,0.55,0.46],"2019-01-09":[0.53,0.48,0.47],"2019-01-10":[0.73,0.79,0.67],"2019-01-11":[0.62,0.42,0.32],"2019-01-12":[0.61,0.34,0.27],"2019-01-13":[0.54,0.44,0.49],"2019-01-14":[0.77,0.68,0.55],"2019-01-15":[0.75,0.62,0.45],"2019-01-16":[0.79,0.67,0.5],"2019-01-17":[0.81,0.62,0.52],"2019-01-18":[0.6,0.42,0.3],"2019-01-19":[0.74,0.54,0.35],"2019-01-20":[0.02,0.03,0.57],"2019-01-21":[0.1,0.59,0.52],"2019-01-22":[0.74,0.61,0.57],"2019-01-23":[0.87,0.76,0.64],"2019-01-24":[0.92,0.78,0.61],"2019-01-25":[0.86,0.7,0.58],"2019-01-26":[0.79,0.61,0.42],"2019-01-27":[0.81,0.64,0.49],"2019-01-28":[0.76,0.59,0.53],"2019-01-29":[0.81,0.6,0.4],"2019-01-30":[0.39,0.49,0.39],"2019-01-31":[0.76,0.58,0.55],"2019-02-01":[0.8,0.61,0.62],"2019-02-02":[0.85,0.82,0.67],"2019-02-03":[0.92,0.8,0.6],"2019-02-04":[0.73,0.47,0.33],"2019-02-05":[0.0,0.0,0.02],"2019-02-06":[0.0,0.01,0.5],"2019-02-07":[0.03,0.64,0.63],"2019-02-08":[0.88,0.82,0.68],"2019-02-09":[0.93,0.79,0.62],"2019-02-10":[0.0,0.0,0.0],"2019-02-11":[0.0,0.0,0.01],"2019-02-12":[0.0,0.0,0.02],"2019-02-13":[0.0,0.0,0.02],"2019-02-14":[0.0,0.0,0.05],"2019-02-15":[0.0,0.01,0.01],"2019-02-16":[0.02,0.01,0.7],"2019-02-17":[0.01,0.77,0.67],"2019-02-18":[0.01,0.0,0.0],"2019-02-19":[0.0,0.0,0.01],"2019-02-20":[0.0,0.0,0.66],"2019-02-21":[0.01,0.83,0.73],"2019-02-22":[0.9,0.84,0.68],"2019-02-23":[0.91,0.79,0.66],"2019-02-24":[0.88,0.74,0.61],"2019-02-25":[0.8,0.62,0.48],"2019-02-26":[0.0,0.0,0.0],"2019-02-27":[0.0,0.0,0.01],"2019-02-28":[0.0,0.0,0.58],"2019-03-01":[0.02,0.72,0.68],"2019-03-02":[0.84,0.81,0.72],"2019-03-03":[0.94,0.81,0.74],"2019-03-04":[0.91,0.8,0.72],"2019-03-05":[0.87,0.73,0.61],"2019-03-06":[0.88,0.81,0.7],"2019-03-07":[0.85,0.71,0.63],"2019-03-08":[0.84,0.8,0.67],"2019-03-09":[0.94,0.82,0.7],"2019-03-10":[0.71,0.57,0.47],"2019-03-11":[0.7,0.56,0.44],"2019-03-12":[0.0,0.0,0.03],"2019-03-13":[0.0,0.0,0.01],"2019-03-14":[0.0,0.0,0.03],"2019-03-15":[0.0,0.0,0.01],"2019-03-16":[0.0,0.0,0.59],"2019-03-17":[0.03,0.49,0.54],"2019-03-18":[0.01,0.0,0.01],"2019-03-19":[0.0,0.0,0.01],"2019-03-20":[0.0,0.0,0.03],"2019-03-21":[0.0,0.01,0.06],"2019-03-22":[0.01,0.01,0.66],"2019-03-23":[0.08,0.8,0.68],"2019-03-24":[0.87,0.82,0.7],"2019-03-25":[0.88,0.74,0.61],"2019-03-26":[0.89,0.73,0.61],"2019-03-27":[0.89,0.72,0.6],"2019-03-28":[0.89,0.79,0.72],"2019-03-29":[0.89,0.77,0.7],"2019-03-30":[0.91,0.74,0.57],"2019-03-31":[0.88,0.73,0.58],"2019-09-01":[0.62,0.55,0.56],"2019-09-02":[0.93,0.86,0.76],"2019-09-03":[0.89,0.83,0.81],"2019-09-04":[0.94,0.87,0.82],"2019-09-05":[0.96,0.87,0.79],"2019-09-06":[0.94,0.85,0.75],"2019-09-07":[0.93,0.85,0.76],"2019-09-08":[0.94,0.88,0.8],"2019-09-09":[0.94,0.88,0.8],"2019-09-10":[0.95,0.88,0.8],"2019-09-11":[0.98,0.93,0.9],"2019-09-12":[0.98,0.93,0.86],"2019-09-13":[0.97,0.88,0.84],"2019-09-14":[0.97,0.91,0.87],"2019-09-15":[0.97,0.92,0.88],"2019-09-16":[0.97,0.92,0.88],"2019-09-17":[0.97,0.91,0.88],"2019-09-18":[0.96,0.91,0.87],"2019-09-19":[0.74,0.77,0.74],"2019-09-20":[0.83,0.78,0.67],"2019-09-21":[0.9,0.81,0.69],"2019-09-22":[0.9,0.76,0.7],"2019-09-23":[0.89,0.78,0.64],"2019-09-24":[0.89,0.76,0.63],"2019-09-25":[0.73,0.54,0.41],"2019-09-26":[0.9,0.69,0.54],"2019-09-27":[0.81,0.62,0.65],"2019-09-28":[0.81,0.76,0.67],"2019-09-29":[0.89,0.82,0.66],"2019-09-30":[0.9,0.84,0.78],"2019-10-01":[0.91,0.88,0.8],"2019-10-02":[0.91,0.87,0.79],"2019-10-03":[0.75,0.66,0.57],"2019-10-04":[0.79,0.69,0.57],"2019-10-05":[0.75,0.68,0.56],"2019-10-06":[0.83,0.68,0.56],"2019-10-07":[0.75,0.66,0.57],"2019-10-08":[0.83,0.69,0.52],"2019-10-09":[0.88,0.72,0.55],"2019-10-10":[0.9,0.77,0.61],"2019-10-11":[0.8,0.66,0.49],"2019-10-12":[0.89,0.66,0.53],"2019-10-13":[0.77,0.7,0.53],"2019-10-14":[0.78,0.65,0.57],"2019-10-15":[0.89,0.7,0.61],"2019-10-16":[0.86,0.73,0.7],"2019-10-17":[0.86,0.78,0.69],"2019-10-18":[0.88,0.79,0.68],"2019-10-19":[0.85,0.69,0.59],"2019-10-20":[0.84,0.67,0.56],"2019-10-21":[0.75,0.6,0.44],"2019-10-22":[0.85,0.62,0.59],"2019-10-23":[0.86,0.75,0.64],"2019-10-24":[0.91,0.76,0.65],"2019-10-25":[0.9,0.72,0.65],"2019-10-26":[0.9,0.72,0.59],"2019-10-27":[0.92,0.74,0.62],"2019-10-28":[0.93,0.74,0.58],"2019-10-29":[0.9,0.75,0.62],"2019-10-30":[0.91,0.74,0.67],"2019-10-31":[0.89,0.64,0.51],"2019-11-01":[0.91,0.65,0.46],"2019-11-02":[0.72,0.67,0.54],"2019-11-03":[0.73,0.6,0.48],"2019-11-04":[0.88,0.64,0.6],"2019-11-05":[0.84,0.7,0.63],"2019-11-06":[0.8,0.69,0.57],"2019-11-07":[0.7,0.57,0.46],"2019-11-08":[0.84,0.59,0.55],"2019-11-09":[0.56,0.46,0.43],"2019-11-10":[0.12,0.38,0.39],"2019-11-11":[0.39,0.49,0.65],"2019-11-12":[0.71,0.74,0.67],"2019-11-13":[0.69,0.58,0.5],"2019-11-14":[0.54,0.49,0.32],"2019-11-15":[0.77,0.64,0.72],"2019-11-16":[0.72,0.76,0.67],"2019-11-17":[0.89,0.81,0.66],"2019-11-18":[0.92,0.78,0.63],"2019-11-19":[0.87,0.75,0.61],"2019-11-20":[0.85,0.7,0.59],"2019-11-21":[0.86,0.7,0.59],"2019-11-22":[0.86,0.7,0.59],"2019-11-23":[0.93,0.84,0.76],"2019-11-24":[0.9,0.83,0.79],"2019-11-25":[0.73,0.57,0.5],"2019-11-26":[0.76,0.58,0.47],"2019-11-27":[0.0,0.0,0.01],"2019-11-28":[0.0,0.0,0.01],"2019-11-29":[0.0,0.0,0.62],"2019-11-30":[0.03,0.74,0.58],"2019-12-01":[0.88,0.69,0.56],"2019-12-02":[0.81,0.66,0.51],"2019-12-03":[0.85,0.69,0.54],"2019-12-04":[0.64,0.42,0.34],"2019-12-05":[0.01,0.0,0.01],"2019-12-06":[0.01,0.01,0.35],"2019-12-07":[0.01,0.46,0.57],"2019-12-08":[0.65,0.65,0.54],"2019-12-09":[0.7,0.58,0.4],"2019-12-10":[0.0,0.0,0.03],"2019-12-11":[0.0,0.0,0.43],"2019-12-12":[0.0,0.0,0.02],"2019-12-13":[0.01,0.0,0.01],"2019-12-14":[0.01,0.0,0.5],"2019-12-15":[0.03,0.75,0.66],"2019-12-16":[0.0,0.0,0.0],"2019-12-17":[0.0,0.0,0.0],"2019-12-18":[0.0,0.0,0.01],"2019-12-19":[0.0,0.0,0.13],"2019-12-20":[0.0,0.07,0.53],"2019-12-21":[0.14,0.43,0.35],"2019-12-22":[0.64,0.72,0.57],"2019-12-23":[0.77,0.63,0.55],"2019-12-24":[0.81,0.75,0.67],"2019-12-25":[0.3,0.37,0.23],"2019-12-26":[0.71,0.53,0.31],"2019-12-27":[0.75,0.46,0.58],"2019-12-28":[0.59,0.81,0.67],"2019-12-29":[0.88,0.79,0.62],"2019-12-30":[0.76,0.6,0.56],"2019-12-31":[0.84,0.72,0.58],"2020-01-01":[0.0,0.01,0.05],"2020-01-02":[0.1,0.44,0.32],"2020-01-03":[0.03,0.03,0.53],"2020-01-04":[0.03,0.52,0.4],"2020-01-05":[0.63,0.57,0.5],"2020-01-06":[0.73,0.58,0.55],"2020-01-07":[0.01,0.01,0.04],"2020-01-08":[0.01,0.01,0.13],"2020-01-09":[0.0,0.05,0.58],"2020-01-10":[0.21,0.81,0.67],"2020-01-11":[0.71,0.55,0.39],"2020-01-12":[0.0,0.0,0.01],"2020-01-13":[0.0,0.0,0.03],"2020-01-14":[0.0,0.01,0.43],"2020-01-15":[0.09,0.7,0.63],"2020-01-16":[0.88,0.77,0.62],"2020-01-17":[0.91,0.73,0.53],"2020-01-18":[0.87,0.71,0.56],"2020-01-19":[0.86,0.72,0.56],"2020-01-20":[0.86,0.71,0.56],"2020-01-21":[0.86,0.71,0.57],"2020-01-22":[0.0,0.0,0.0],"2020-01-23":[0.0,0.0,0.0],"2020-01-24":[0.0,0.0,0.48],"2020-01-25":[0.02,0.53,0.62],"2020-01-26":[0.72,0.73,0.6],"2020-01-27":[0.76,0.67,0.54],"2020-01-28":[0.86,0.75,0.61],"2020-01-29":[0.73,0.56,0.38],"2020-01-30":[0.49,0.41,0.3],"2020-01-31":[0.02,0.01,0.18],"2020-02-01":[0.04,0.14,0.49],"2020-02-02":[0.0,0.01,0.02],"2020-02-03":[0.01,0.01,0.02],"2020-02-04":[0.0,0.0,0.22],"2020-02-05":[0.04,0.56,0.39],"2020-02-06":[0.64,0.53,0.65],"2020-02-07":[0.67,0.65,0.58],"2020-02-08":[0.89,0.77,0.61],"2020-02-09":[0.89,0.76,0.63],"2020-02-10":[0.0,0.0,0.0],"2020-02-11":[0.0,0.0,0.0],"2020-02-12":[0.0,0.0,0.64],"2020-02-13":[0.01,0.78,0.64],"2020-02-14":[0.91,0.73,0.55],"2020-02-15":[0.89,0.72,0.58],"2020-02-16":[0.89,0.73,0.57],"2020-02-17":[0.89,0.73,0.57],"2020-02-18":[0.87,0.69,0.57],"2020-02-19":[0.0,0.0,0.0],"2020-02-20":[0.0,0.0,0.01],"2020-02-21":[0.0,0.0,0.48],"2020-02-22":[0.01,0.66,0.6],"2020-02-23":[0.88,0.76,0.61],"2020-02-24":[0.84,0.75,0.59],"2020-02-25":[0.83,0.74,0.6],"2020-02-26":[0.24,0.18,0.11],"2020-02-27":[0.62,0.42,0.37],"2020-02-28":[0.55,0.54,0.69],"2020-02-29":[0.71,0.83,0.72],"2020-03-01":[0.92,0.79,0.64],"2020-03-02":[0.92,0.77,0.6],"2020-03-03":[0.91,0.78,0.63],"2020-03-04":[0.92,0.8,0.65],"2020-03-05":[0.93,0.82,0.65],"2020-03-06":[0.93,0.83,0.66],"2020-03-07":[0.88,0.8,0.65],"2020-03-08":[0.91,0.82,0.63],"2020-03-09":[0.92,0.82,0.6],"2020-03-10":[0.9,0.8,0.64],"2020-03-11":[0.89,0.76,0.62],"2020-03-12":[0.92,0.83,0.71],"2020-03-13":[0.92,0.83,0.71],"2020-03-14":[0.93,0.83,0.71],"2020-03-15":[0.93,0.83,0.71],"2020-03-16":[0.79,0.61,0.53],"2020-03-17":[0.91,0.71,0.65],"2020-03-18":[0.83,0.76,0.68],"2020-03-19":[0.0,0.0,0.0],"2020-03-20":[0.0,0.0,0.01],"2020-03-21":[0.0,0.0,0.65],"2020-03-22":[0.02,0.78,0.67],"2020-03-23":[0.87,0.79,0.71],"2020-03-24":[0.92,0.85,0.8],"2020-03-25":[0.92,0.84,0.82],"2020-03-26":[0.9,0.83,0.76],"2020-03-27":[0.86,0.8,0.72],"2020-03-28":[0.0,0.0,0.01],"2020-03-29":[0.0,0.0,0.01],"2020-03-30":[0.01,0.0,0.69],"2020-03-31":[0.02,0.83,0.72],"2020-09-01":[0.94,0.75,0.66],"2020-09-02":[0.69,0.65,0.54],"2020-09-03":[0.95,0.81,0.72],"2020-09-04":[0.94,0.81,0.74],"2020-09-05":[0.94,0.75,0.73],"2020-09-06":[0.93,0.76,0.7],"2020-09-07":[0.94,0.8,0.76],"2020-09-08":[0.94,0.8,0.77],"2020-09-09":[0.94,0.81,0.77],"2020-09-10":[0.94,0.81,0.77],"2020-09-11":[0.94,0.81,0.77],"2020-09-12":[0.92,0.84,0.78],"2020-09-13":[0.93,0.84,0.78],"2020-09-14":[0.93,0.82,0.76],"2020-09-15":[0.95,0.88,0.83],"2020-09-16":[0.94,0.87,0.8],"2020-09-17":[0.96,0.91,0.86],"2020-09-18":[0.95,0.9,0.85],"2020-09-19":[0.63,0.58,0.57],"2020-09-20":[0.85,0.79,0.76],"2020-09-21":[0.01,0.0,0.1],"2020-09-22":[0.0,0.04,0.06],"2020-09-23":[0.04,0.01,0.74],"2020-09-24":[0.01,0.82,0.74],"2020-09-25":[0.91,0.84,0.72],"2020-09-26":[0.88,0.78,0.66],"2020-09-27":[0.89,0.79,0.68],"2020-09-28":[0.9,0.83,0.74],"2020-09-29":[0.92,0.85,0.78],"2020-09-30":[0.92,0.84,0.77],"2020-10-01":[0.94,0.86,0.81],"2020-10-02":[0.92,0.85,0.79],"2020-10-03":[0.92,0.84,0.76],"2020-10-04":[0.92,0.83,0.71],"2020-10-05":[0.92,0.77,0.69],"2020-10-06":[0.9,0.77,0.69],"2020-10-07":[0.84,0.7,0.61],"2020-10-08":[0.86,0.72,0.59],"2020-10-09":[0.87,0.67,0.57],"2020-10-10":[0.85,0.66,0.57],"2020-10-11":[0.85,0.63,0.55],"2020-10-12":[0.87,0.77,0.67],"2020-10-13":[0.76,0.72,0.6],"2020-10-14":[0.62,0.47,0.45],"2020-10-15":[0.0,0.0,0.02],"2020-10-16":[0.0,0.0,0.02],"2020-10-17":[0.01,0.01,0.65],"2020-10-18":[0.05,0.84,0.75],"2020-10-19":[0.91,0.84,0.78],"2020-10-20":[0.79,0.73,0.65],"2020-10-21":[0.73,0.67,0.55],"2020-10-22":[0.86,0.7,0.63],"2020-10-23":[0.89,0.78,0.78],"2020-10-24":[0.69,0.75,0.64],"2020-10-25":[0.87,0.71,0.64],"2020-10-26":[0.0,0.0,0.0],"2020-10-27":[0.0,0.0,0.0],"2020-10-28":[0.0,0.0,0.56],"2020-10-29":[0.0,0.0,0.01],"2020-10-30":[0.01,0.0,0.01],"2020-10-31":[0.0,0.0,0.67],"2020-11-01":[0.01,0.76,0.61],"2020-11-02":[0.85,0.71,0.55],"2020-11-03":[0.8,0.67,0.59],"2020-11-04":[0.83,0.68,0.6],"2020-11-05":[0.82,0.67,0.59],"2020-11-06":[0.85,0.67,0.59],"2020-11-07":[0.85,0.67,0.58],"2020-11-08":[0.86,0.67,0.55],"2020-11-09":[0.53,0.42,0.31],"2020-11-10":[0.02,0.01,0.06],"2020-11-11":[0.02,0.05,0.61],"2020-11-12":[0.16,0.71,0.64],"2020-11-13":[0.76,0.72,0.62],"2020-11-14":[0.87,0.7,0.52],"2020-11-15":[0.72,0.55,0.43],"2020-11-16":[0.82,0.65,0.52],"2020-11-17":[0.36,0.32,0.44],"2020-11-18":[0.11,0.41,0.28],"2020-11-19":[0.56,0.43,0.58],"2020-11-20":[0.76,0.78,0.63],"2020-11-21":[0.87,0.71,0.53],"2020-11-22":[0.88,0.71,0.53],"2020-11-23":[0.86,0.68,0.52],"2020-11-24":[0.86,0.67,0.52],"2020-11-25":[0.84,0.67,0.57],"2020-11-26":[0.84,0.67,0.56],"2020-11-27":[0.92,0.81,0.71],"2020-11-28":[0.87,0.71,0.6],"2020-11-29":[0.92,0.76,0.62],"2020-11-30":[0.81,0.59,0.48],"2020-12-01":[0.82,0.67,0.59],"2020-12-02":[0.83,0.72,0.67],"2020-12-03":[0.61,0.45,0.28],"2020-12-04":[0.7,0.43,0.34],"2020-12-05":[0.0,0.0,0.05],"2020-12-06":[0.0,0.0,0.01],"2020-12-07":[0.0,0.0,0.03],"2020-12-08":[0.0,0.0,0.48],"2020-12-09":[0.06,0.66,0.58],"2020-12-10":[0.87,0.7,0.6],"2020-12-11":[0.87,0.69,0.54],"2020-12-12":[0.85,0.69,0.55],"2020-12-13":[0.85,0.67,0.53],"2020-12-14":[0.0,0.0,0.0],"2020-12-15":[0.0,0.0,0.0],"2020-12-16":[0.0,0.0,0.54],"2020-12-17":[0.0,0.01,0.03],"2020-12-18":[0.01,0.01,0.03],"2020-12-19":[0.0,0.02,0.51],"2020-12-20":[0.08,0.66,0.6],"2020-12-21":[0.78,0.73,0.57],"2020-12-22":[0.84,0.68,0.54],"2020-12-23":[0.83,0.71,0.59],"2020-12-24":[0.88,0.74,0.58],"2020-12-25":[0.88,0.73,0.56],"2020-12-26":[0.84,0.66,0.52],"2020-12-27":[0.9,0.83,0.75],"2020-12-28":[0.89,0.74,0.63],"2020-12-29":[0.88,0.76,0.62],"2020-12-30":[0.88,0.72,0.57],"2020-12-31":[0.83,0.74,0.63],"2021-01-01":[0.85,0.74,0.64],"2021-01-02":[0.82,0.75,0.62],"2021-01-03":[0.84,0.75,0.62],"2021-01-04":[0.8,0.61,0.53],"2021-01-05":[0.42,0.29,0.28],"2021-01-06":[0.0,0.0,0.01],"2021-01-07":[0.0,0.0,0.03],"2021-01-08":[0.0,0.01,0.11],"2021-01-09":[0.0,0.02,0.4],"2021-01-10":[0.17,0.63,0.59],"2021-01-11":[0.81,0.77,0.62],"2021-01-12":[0.87,0.69,0.54],"2021-01-13":[0.0,0.0,0.0],"2021-01-14":[0.0,0.0,0.0],"2021-01-15":[0.0,0.0,0.36],"2021-01-16":[0.0,0.38,0.4],"2021-01-17":[0.0,0.0,0.02],"2021-01-18":[0.0,0.0,0.0],"2021-01-19":[0.0,0.0,0.06],"2021-01-20":[0.0,0.0,0.02],"2021-01-21":[0.01,0.0,0.08],"2021-01-22":[0.0,0.01,0.29],"2021-01-23":[0.0,0.0,0.04],"2021-01-24":[0.0,0.0,0.14],"2021-01-25":[0.0,0.0,0.04],"2021-01-26":[0.0,0.0,0.02],"2021-01-27":[0.0,0.0,0.14],"2021-01-28":[0.0,0.02,0.08],"2021-01-29":[0.02,0.02,0.52],"2021-01-30":[0.06,0.59,0.5],"2021-01-31":[0.43,0.51,0.49],"2021-02-01":[0.42,0.43,0.44],"2021-02-02":[0.63,0.61,0.55],"2021-02-03":[0.75,0.66,0.55],"2021-02-04":[0.8,0.76,0.63],"2021-02-05":[0.89,0.82,0.68],"2021-02-06":[0.87,0.76,0.69],"2021-02-07":[0.87,0.75,0.66],"2021-02-08":[0.89,0.76,0.64],"2021-02-09":[0.88,0.78,0.63],"2021-02-10":[0.92,0.8,0.68],"2021-02-11":[0.85,0.76,0.7],"2021-02-12":[0.73,0.49,0.41],"2021-02-13":[0.71,0.51,0.48],"2021-02-14":[0.71,0.56,0.49],"2021-02-15":[0.77,0.66,0.57],"2021-02-16":[0.84,0.63,0.59],"2021-02-17":[0.84,0.77,0.65],"2021-02-18":[0.9,0.77,0.6],"2021-02-19":[0.89,0.76,0.6],"2021-02-20":[0.89,0.78,0.6],"2021-02-21":[0.89,0.78,0.6],"2021-02-22":[0.92,0.79,0.65],"2021-02-23":[0.92,0.81,0.68],"2021-02-24":[0.0,0.0,0.0],"2021-02-25":[0.0,0.0,0.01],"2021-02-26":[0.0,0.0,0.68],"2021-02-27":[0.01,0.83,0.74],"2021-02-28":[0.93,0.83,0.75],"2021-03-01":[0.9,0.78,0.7],"2021-03-02":[0.85,0.7,0.63],"2021-03-03":[0.85,0.75,0.67],"2021-03-04":[0.7,0.62,0.58],"2021-03-05":[0.69,0.55,0.5],"2021-03-06":[0.86,0.67,0.77],"2021-03-07":[0.84,0.81,0.7],"2021-03-08":[0.93,0.89,0.77],"2021-03-09":[0.95,0.89,0.76],"2021-03-10":[0.95,0.87,0.75],"2021-03-11":[0.94,0.86,0.75],"2021-03-12":[0.94,0.86,0.76],"2021-03-13":[0.9,0.68,0.61],"2021-03-14":[0.84,0.72,0.53],"2021-03-15":[0.87,0.65,0.55],"2021-03-16":[0.71,0.56,0.4],"2021-03-17":[0.75,0.61,0.53],"2021-03-18":[0.81,0.63,0.63],"2021-03-19":[0.83,0.75,0.76],"2021-03-20":[0.85,0.76,0.68],"2021-03-21":[0.88,0.78,0.71],"2021-03-22":[0.85,0.71,0.61],"2021-03-23":[0.82,0.64,0.55],"2021-03-24":[0.82,0.71,0.62],"2021-03-25":[0.84,0.8,0.73],"2021-03-26":[0.93,0.87,0.79],"2021-03-27":[0.91,0.8,0.69],"2021-03-28":[0.92,0.82,0.74],"2021-03-29":[0.93,0.83,0.75],"2021-03-30":[0.94,0.81,0.72],"2021-03-31":[0.93,0.79,0.72],"2021-09-01":[0.95,0.88,0.8],"2021-09-02":[0.95,0.87,0.78],"2021-09-03":[0.94,0.86,0.76],"2021-09-04":[0.94,0.86,0.77],"2021-09-05":[0.87,0.78,0.69],"2021-09-06":[0.92,0.84,0.76],"2021-09-07":[0.95,0.87,0.77],"2021-09-08":[0.95,0.88,0.81],"2021-09-09":[0.75,0.67,0.61],"2021-09-10":[0.92,0.87,0.73],"2021-09-11":[0.78,0.71,0.59],"2021-09-12":[0.93,0.85,0.8],"2021-09-13":[0.93,0.87,0.77],"2021-09-14":[0.84,0.78,0.7],"2021-09-15":[0.94,0.84,0.79],"2021-09-16":[0.0,0.0,0.0],"2021-09-17":[0.0,0.0,0.01],"2021-09-18":[0.0,0.0,0.63],"2021-09-19":[0.0,0.83,0.7],"2021-09-20":[0.94,0.85,0.73],"2021-09-21":[0.92,0.83,0.67],"2021-09-22":[0.92,0.82,0.66],"2021-09-23":[0.91,0.82,0.65],"2021-09-24":[0.91,0.79,0.62],"2021-09-25":[0.89,0.78,0.62],"2021-09-26":[0.86,0.74,0.69],"2021-09-27":[0.88,0.75,0.65],"2021-09-28":[0.88,0.74,0.67],"2021-09-29":[0.83,0.67,0.55],"2021-09-30":[0.85,0.63,0.56],"2021-10-01":[0.66,0.58,0.38],"2021-10-02":[0.01,0.01,0.05],"2021-10-03":[0.0,0.02,0.47],"2021-10-04":[0.03,0.53,0.56],"2021-10-05":[0.64,0.75,0.67],"2021-10-06":[0.84,0.71,0.7],"2021-10-07":[0.0,0.01,0.0],"2021-10-08":[0.0,0.01,0.01],"2021-10-09":[0.0,0.0,0.02],"2021-10-10":[0.0,0.0,0.0],"2021-10-11":[0.0,0.0,0.06],"2021-10-12":[0.0,0.01,0.7],"2021-10-13":[0.08,0.8,0.67],"2021-10-14":[0.01,0.01,0.01],"2021-10-15":[0.0,0.0,0.0],"2021-10-16":[0.0,0.0,0.03],"2021-10-17":[0.0,0.0,0.62],"2021-10-18":[0.07,0.67,0.56],"2021-10-19":[0.8,0.75,0.64],"2021-10-20":[0.85,0.75,0.67],"2021-10-21":[0.89,0.76,0.65],"2021-10-22":[0.89,0.76,0.65],"2021-10-23":[0.0,0.0,0.0],"2021-10-24":[0.0,0.0,0.01],"2021-10-25":[0.0,0.0,0.43],"2021-10-26":[0.01,0.61,0.59],"2021-10-27":[0.79,0.76,0.58],"2021-10-28":[0.86,0.71,0.59],"2021-10-29":[0.84,0.69,0.61],"2021-10-30":[0.73,0.63,0.48],"2021-10-31":[0.89,0.72,0.6],"2021-11-01":[0.8,0.66,0.59],"2021-11-02":[0.83,0.68,0.55],"2021-11-03":[0.89,0.66,0.6],"2021-11-04":[0.88,0.69,0.61],"2021-11-05":[0.65,0.55,0.48],"2021-11-06":[0.77,0.66,0.53],"2021-11-07":[0.82,0.71,0.6],"2021-11-08":[0.88,0.74,0.57],"2021-11-09":[0.91,0.78,0.67],"2021-11-10":[0.61,0.41,0.31],"2021-11-11":[0.78,0.52,0.35],"2021-11-12":[0.71,0.46,0.61],"2021-11-13":[0.71,0.73,0.65],"2021-11-14":[0.9,0.77,0.62],"2021-11-15":[0.72,0.58,0.49],"2021-11-16":[0.77,0.59,0.49],"2021-11-17":[0.82,0.58,0.52],"2021-11-18":[0.81,0.61,0.56],"2021-11-19":[0.83,0.72,0.61],"2021-11-20":[0.9,0.77,0.62],"2021-11-21":[0.91,0.79,0.64],"2021-11-22":[0.92,0.81,0.7],"2021-11-23":[0.92,0.82,0.71],"2021-11-24":[0.92,0.82,0.71],"2021-11-25":[0.93,0.84,0.76],"2021-11-26":[0.88,0.77,0.59],"2021-11-27":[0.94,0.72,0.62],"2021-11-28":[0.41,0.3,0.25],"2021-11-29":[0.01,0.02,0.05],"2021-11-30":[0.01,0.01,0.67],"2021-12-01":[0.03,0.74,0.65],"2021-12-02":[0.78,0.73,0.62],"2021-12-03":[0.85,0.73,0.6],"2021-12-04":[0.87,0.74,0.63],"2021-12-05":[0.87,0.75,0.64],"2021-12-06":[0.88,0.75,0.62],"2021-12-07":[0.87,0.73,0.64],"2021-12-08":[0.94,0.85,0.77],"2021-12-09":[0.91,0.82,0.74],"2021-12-10":[0.9,0.78,0.73],"2021-12-11":[0.9,0.79,0.72],"2021-12-12":[0.89,0.75,0.63],"2021-12-13":[0.74,0.52,0.47],"2021-12-14":[0.71,0.66,0.5],"2021-12-15":[0.0,0.0,0.03],"2021-12-16":[0.0,0.0,0.01],"2021-12-17":[0.01,0.01,0.6],"2021-12-18":[0.01,0.15,0.23],"2021-12-19":[0.56,0.62,0.31],"2021-12-20":[0.73,0.45,0.66],"2021-12-21":[0.6,0.78,0.65],"2021-12-22":[0.88,0.76,0.6],"2021-12-23":[0.88,0.76,0.62],"2021-12-24":[0.88,0.75,0.64],"2021-12-25":[0.85,0.7,0.6],"2021-12-26":[0.77,0.63,0.53],"2021-12-27":[0.78,0.65,0.58],"2021-12-28":[0.87,0.78,0.71],"2021-12-29":[0.89,0.86,0.71],"2021-12-30":[0.8,0.58,0.53],"2021-12-31":[0.8,0.67,0.56],"2022-01-01":[0.88,0.75,0.7],"2022-01-02":[0.85,0.76,0.67],"2022-01-03":[0.88,0.75,0.61],"2022-01-04":[0.89,0.74,0.64],"2022-01-05":[0.77,0.56,0.48],"2022-01-06":[0.81,0.63,0.55],"2022-01-07":[0.0,0.0,0.01],"2022-01-08":[0.0,0.0,0.0],"2022-01-09":[0.01,0.0,0.69],"2022-01-10":[0.02,0.75,0.59],"2022-01-11":[0.9,0.73,0.56],"2022-01-12":[0.84,0.72,0.55],"2022-01-13":[0.85,0.71,0.55],"2022-01-14":[0.85,0.69,0.59],"2022-01-15":[0.85,0.74,0.62],"2022-01-16":[0.89,0.73,0.6],"2022-01-17":[0.94,0.85,0.77],"2022-01-18":[0.93,0.85,0.77],"2022-01-19":[0.67,0.44,0.26],"2022-01-20":[0.74,0.49,0.33],"2022-01-21":[0.76,0.48,0.66],"2022-01-22":[0.62,0.78,0.68],"2022-01-23":[0.84,0.68,0.55],"2022-01-24":[0.83,0.69,0.62],"2022-01-25":[0.84,0.71,0.62],"2022-01-26":[0.82,0.63,0.51],"2022-01-27":[0.8,0.64,0.51],"2022-01-28":[0.8,0.61,0.57],"2022-01-29":[0.9,0.78,0.65],"2022-01-30":[0.93,0.78,0.64],"2022-01-31":[0.92,0.79,0.67],"2022-02-01":[0.9,0.8,0.68],"2022-02-02":[0.93,0.82,0.66],"2022-02-03":[0.72,0.53,0.38],"2022-02-04":[0.82,0.64,0.51],"2022-02-05":[0.69,0.56,0.51],"2022-02-06":[0.74,0.69,0.56],"2022-02-07":[0.83,0.59,0.57],"2022-02-08":[0.79,0.7,0.61],"2022-02-09":[0.89,0.72,0.57],"2022-02-10":[0.86,0.71,0.58],"2022-02-11":[0.84,0.67,0.54],"2022-02-12":[0.83,0.67,0.57],"2022-02-13":[0.88,0.76,0.65],"2022-02-14":[0.81,0.67,0.54],"2022-02-15":[0.75,0.65,0.56],"2022-02-16":[0.84,0.72,0.67],"2022-02-17":[0.9,0.79,0.65],"2022-02-18":[0.92,0.76,0.61],"2022-02-19":[0.81,0.67,0.57],"2022-02-20":[0.88,0.67,0.6],"2022-02-21":[0.83,0.72,0.64],"2022-02-22":[0.87,0.77,0.71],"2022-02-23":[0.88,0.75,0.7],"2022-02-24":[0.91,0.83,0.76],"2022-02-25":[0.79,0.68,0.56],"2022-02-26":[0.81,0.68,0.58],"2022-02-27":[0.89,0.72,0.71],"2022-02-28":[0.64,0.62,0.53],"2022-03-01":[0.0,0.0,0.0],"2022-03-02":[0.0,0.0,0.02],"2022-03-03":[0.0,0.0,0.64],"2022-03-04":[0.06,0.8,0.7],"2022-03-05":[0.89,0.79,0.74],"2022-03-06":[0.83,0.71,0.65],"2022-03-07":[0.82,0.72,0.67],"2022-03-08":[0.87,0.79,0.71],"2022-03-09":[0.9,0.83,0.71],"2022-03-10":[0.0,0.0,0.0],"2022-03-11":[0.0,0.0,0.0],"2022-03-12":[0.0,0.0,0.05],"2022-03-13":[0.0,0.0,0.45],"2022-03-14":[0.05,0.69,0.47],"2022-03-15":[0.7,0.52,0.59],"2022-03-16":[0.82,0.77,0.62],"2022-03-17":[0.94,0.79,0.63],"2022-03-18":[0.65,0.44,0.32],"2022-03-19":[0.75,0.54,0.5],"2022-03-20":[0.76,0.61,0.62],"2022-03-21":[0.86,0.81,0.71],"2022-03-22":[0.56,0.5,0.37],"2022-03-23":[0.66,0.44,0.36],"2022-03-24":[0.0,0.02,0.55],"2022-03-25":[0.0,0.0,0.01],"2022-03-26":[0.02,0.01,0.03],"2022-03-27":[0.0,0.0,0.73],"2022-03-28":[0.04,0.79,0.72],"2022-03-29":[0.84,0.75,0.65],"2022-03-30":[0.86,0.79,0.69],"2022-03-31":[0.01,0.02,0.06],"2022-09-01":[0.91,0.8,0.6],"2022-09-02":[0.91,0.7,0.59],"2022-09-03":[0.87,0.71,0.6],"2022-09-04":[0.56,0.49,0.45],"2022-09-05":[0.87,0.78,0.75],"2022-09-06":[0.9,0.83,0.75],"2022-09-07":[0.96,0.86,0.79],"2022-09-08":[0.96,0.89,0.84],"2022-09-09":[0.95,0.88,0.8],"2022-09-10":[0.79,0.76,0.64],"2022-09-11":[0.93,0.87,0.81],"2022-09-12":[0.94,0.87,0.79],"2022-09-13":[0.68,0.6,0.52],"2022-09-14":[0.0,0.0,0.01],"2022-09-15":[0.0,0.0,0.04],"2022-09-16":[0.0,0.01,0.71],"2022-09-17":[0.09,0.87,0.8],"2022-09-18":[0.9,0.84,0.74],"2022-09-19":[0.81,0.73,0.62],"2022-09-20":[0.86,0.68,0.63],"2022-09-21":[0.62,0.56,0.53],"2022-09-22":[0.78,0.69,0.67],"2022-09-23":[0.78,0.76,0.67],"2022-09-24":[0.91,0.81,0.67],"2022-09-25":[0.89,0.78,0.65],"2022-09-26":[0.79,0.68,0.59],"2022-09-27":[0.0,0.01,0.02],"2022-09-28":[0.0,0.01,0.02],"2022-09-29":[0.01,0.01,0.22],"2022-09-30":[0.01,0.02,0.17],"2022-10-01":[0.03,0.05,0.53],"2022-10-02":[0.33,0.75,0.7],"2022-10-03":[0.74,0.82,0.69],"2022-10-04":[0.88,0.77,0.67],"2022-10-05":[0.0,0.0,0.01],"2022-10-06":[0.0,0.0,0.01],"2022-10-07":[0.0,0.0,0.05],"2022-10-08":[0.0,0.01,0.7],"2022-10-09":[0.08,0.83,0.61],"2022-10-10":[0.88,0.77,0.58],"2022-10-11":[0.57,0.45,0.31],"2022-10-12":[0.44,0.34,0.28],"2022-10-13":[0.01,0.01,0.37],"2022-10-14":[0.01,0.51,0.43],"2022-10-15":[0.56,0.52,0.52],"2022-10-16":[0.76,0.78,0.67],"2022-10-17":[0.46,0.49,0.33],"2022-10-18":[0.65,0.52,0.44],"2022-10-19":[0.74,0.61,0.63],"2022-10-20":[0.56,0.62,0.51],"2022-10-21":[0.68,0.59,0.49],"2022-10-22":[0.78,0.61,0.58],"2022-10-23":[0.87,0.76,0.66],"2022-10-24":[0.91,0.75,0.61],"2022-10-25":[0.9,0.74,0.6],"2022-10-26":[0.9,0.72,0.58],"2022-10-27":[0.72,0.55,0.42],"2022-10-28":[0.88,0.74,0.59],"2022-10-29":[0.02,0.06,0.4],"2022-10-30":[0.21,0.5,0.38],"2022-10-31":[0.05,0.03,0.35],"2022-11-01":[0.08,0.59,0.48],"2022-11-02":[0.7,0.53,0.56],"2022-11-03":[0.79,0.73,0.6],"2022-11-04":[0.9,0.74,0.59],"2022-11-05":[0.87,0.76,0.62],"2022-11-06":[0.87,0.75,0.63],"2022-11-07":[0.88,0.75,0.63],"2022-11-08":[0.9,0.77,0.68],"2022-11-09":[0.9,0.77,0.68],"2022-11-10":[0.82,0.67,0.54],"2022-11-11":[0.0,0.0,0.0],"2022-11-12":[0.0,0.0,0.0],"2022-11-13":[0.0,0.0,0.02],"2022-11-14":[0.0,0.01,0.01],"2022-11-15":[0.0,0.0,0.62],"2022-11-16":[0.02,0.77,0.64],"2022-11-17":[0.86,0.74,0.6],"2022-11-18":[0.85,0.7,0.54],"2022-11-19":[0.85,0.68,0.54],"2022-11-20":[0.85,0.68,0.54],"2022-11-21":[0.0,0.0,0.0],"2022-11-22":[0.0,0.0,0.0],"2022-11-23":[0.0,0.0,0.69],"2022-11-24":[0.02,0.73,0.63],"2022-11-25":[0.88,0.71,0.61],"2022-11-26":[0.87,0.7,0.58],"2022-11-27":[0.87,0.7,0.58],"2022-11-28":[0.87,0.69,0.58],"2022-11-29":[0.86,0.69,0.57],"2022-11-30":[0.87,0.71,0.58],"2022-12-01":[0.9,0.74,0.63],"2022-12-02":[0.77,0.52,0.47],"2022-12-03":[0.7,0.5,0.39],"2022-12-04":[0.8,0.58,0.52],"2022-12-05":[0.0,0.0,0.01],"2022-12-06":[0.01,0.01,0.02],"2022-12-07":[0.01,0.0,0.61],"2022-12-08":[0.01,0.63,0.54],"2022-12-09":[0.83,0.72,0.58],"2022-12-10":[0.84,0.68,0.56],"2022-12-11":[0.76,0.54,0.36],"2022-12-12":[0.77,0.56,0.45],"2022-12-13":[0.67,0.55,0.46],"2022-12-14":[0.8,0.64,0.61],"2022-12-15":[0.83,0.7,0.67],"2022-12-16":[0.88,0.81,0.7],"2022-12-17":[0.91,0.82,0.67],"2022-12-18":[0.79,0.6,0.45],"2022-12-19":[0.81,0.64,0.6],"2022-12-20":[0.8,0.68,0.65],"2022-12-21":[0.89,0.81,0.71],"2022-12-22":[0.91,0.81,0.68],"2022-12-23":[0.94,0.86,0.79],"2022-12-24":[0.32,0.21,0.16],"2022-12-25":[0.46,0.3,0.27],"2022-12-26":[0.57,0.48,0.71],"2022-12-27":[0.59,0.75,0.66],"2022-12-28":[0.03,0.03,0.04],"2022-12-29":[0.01,0.01,0.14],"2022-12-30":[0.11,0.53,0.59],"2022-12-31":[0.31,0.74,0.59],"2023-01-01":[0.86,0.75,0.56],"2023-01-02":[0.77,0.54,0.45],"2023-01-03":[0.85,0.66,0.54],"2023-01-04":[0.01,0.01,0.15],"2023-01-05":[0.12,0.53,0.33],"2023-01-06":[0.6,0.42,0.68],"2023-01-07":[0.65,0.81,0.71],"2023-01-08":[0.89,0.78,0.62],"2023-01-09":[0.87,0.77,0.65],"2023-01-10":[0.64,0.45,0.4],"2023-01-11":[0.0,0.0,0.0],"2023-01-12":[0.0,0.0,0.01],"2023-01-13":[0.0,0.01,0.58],"2023-01-14":[0.05,0.5,0.45],"2023-01-15":[0.75,0.67,0.54],"2023-01-16":[0.76,0.64,0.54],"2023-01-17":[0.73,0.59,0.4],"2023-01-18":[0.78,0.62,0.43],"2023-01-19":[0.46,0.28,0.28],"2023-01-20":[0.77,0.69,0.52],"2023-01-21":[0.0,0.01,0.09],"2023-01-22":[0.0,0.0,0.0],"2023-01-23":[0.01,0.01,0.45],"2023-01-24":[0.01,0.56,0.58],"2023-01-25":[0.82,0.74,0.6],"2023-01-26":[0.9,0.71,0.55],"2023-01-27":[0.87,0.72,0.59],"2023-01-28":[0.87,0.72,0.59],"2023-01-29":[0.84,0.7,0.57],"2023-01-30":[0.71,0.53,0.41],"2023-01-31":[0.0,0.0,0.0],"2023-02-01":[0.0,0.0,0.01],"2023-02-02":[0.0,0.0,0.07],"2023-02-03":[0.0,0.01,0.02],"2023-02-04":[0.01,0.0,0.48],"2023-02-05":[0.01,0.6,0.67],"2023-02-06":[0.25,0.44,0.38],"2023-02-07":[0.74,0.7,0.54],"2023-02-08":[0.81,0.64,0.63],"2023-02-09":[0.78,0.74,0.63],"2023-02-10":[0.84,0.68,0.58],"2023-02-11":[0.81,0.67,0.56],"2023-02-12":[0.36,0.3,0.21],"2023-02-13":[0.0,0.0,0.0],"2023-02-14":[0.0,0.0,0.03],"2023-02-15":[0.0,0.01,0.38],"2023-02-16":[0.0,0.0,0.02],"2023-02-17":[0.0,0.0,0.0],"2023-02-18":[0.0,0.0,0.03],"2023-02-19":[0.0,0.0,0.58],"2023-02-20":[0.06,0.41,0.25],"2023-02-21":[0.28,0.31,0.3],"2023-02-22":[0.0,0.01,0.5],"2023-02-23":[0.0,0.01,0.01],"2023-02-24":[0.0,0.0,0.0],"2023-02-25":[0.0,0.0,0.01],"2023-02-26":[0.0,0.0,0.4],"2023-02-27":[0.0,0.02,0.02],"2023-02-28":[0.0,0.0,0.02],"2023-03-01":[0.0,0.01,0.46],"2023-03-02":[0.0,0.0,0.04],"2023-03-03":[0.01,0.0,0.13],"2023-03-04":[0.01,0.03,0.61],"2023-03-05":[0.31,0.84,0.76],"2023-03-06":[0.86,0.83,0.73],"2023-03-07":[0.8,0.66,0.52],"2023-03-08":[0.84,0.69,0.6],"2023-03-09":[0.85,0.7,0.66],"2023-03-10":[0.81,0.75,0.65],"2023-03-11":[0.76,0.59,0.44],"2023-03-12":[0.0,0.0,0.02],"2023-03-13":[0.0,0.0,0.01],"2023-03-14":[0.0,0.0,0.09],"2023-03-15":[0.0,0.02,0.31],"2023-03-16":[0.0,0.0,0.07],"2023-03-17":[0.0,0.01,0.02],"2023-03-18":[0.01,0.01,0.43],"2023-03-19":[0.01,0.66,0.54],"2023-03-20":[0.73,0.69,0.69],"2023-03-21":[0.82,0.78,0.62],"2023-03-22":[0.93,0.8,0.64],"2023-03-23":[0.91,0.79,0.66],"2023-03-24":[0.91,0.81,0.69],"2023-03-25":[0.91,0.81,0.7],"2023-03-26":[0.76,0.53,0.47],"2023-03-27":[0.75,0.65,0.61],"2023-03-28":[0.86,0.76,0.72],"2023-03-29":[0.91,0.8,0.67],"2023-03-30":[0.0,0.0,0.0],"2023-03-31":[0.0,0.0,0.01],"2023-09-01":[0.0,0.0,0.49],"2023-09-02":[0.01,0.54,0.73],"2023-09-03":[0.73,0.87,0.77],"2023-09-04":[0.8,0.71,0.64],"2023-09-05":[0.89,0.83,0.71],"2023-09-06":[0.89,0.8,0.73],"2023-09-07":[0.89,0.85,0.78],"2023-09-08":[0.65,0.51,0.42],"2023-09-09":[0.0,0.0,0.0],"2023-09-10":[0.0,0.0,0.01],"2023-09-11":[0.0,0.0,0.69],"2023-09-12":[0.08,0.77,0.68],"2023-09-13":[0.68,0.51,0.4],"2023-09-14":[0.87,0.68,0.53],"2023-09-15":[0.84,0.61,0.63],"2023-09-16":[0.84,0.81,0.71],"2023-09-17":[0.91,0.78,0.67],"2023-09-18":[0.79,0.71,0.69],"2023-09-19":[0.9,0.81,0.67],"2023-09-20":[0.92,0.78,0.64],"2023-09-21":[0.92,0.76,0.63],"2023-09-22":[0.91,0.75,0.6],"2023-09-23":[0.92,0.81,0.67],"2023-09-24":[0.92,0.8,0.67],"2023-09-25":[0.91,0.79,0.67],"2023-09-26":[0.91,0.79,0.66],"2023-09-27":[0.9,0.76,0.63],"2023-09-28":[0.9,0.76,0.55],"2023-09-29":[0.94,0.8,0.68],"2023-09-30":[0.93,0.8,0.69],"2023-10-01":[0.92,0.8,0.69],"2023-10-02":[0.92,0.8,0.69],"2023-10-03":[0.91,0.79,0.67],"2023-10-04":[0.94,0.82,0.72],"2023-10-05":[0.93,0.81,0.69],"2023-10-06":[0.93,0.78,0.69],"2023-10-07":[0.7,0.74,0.65],"2023-10-08":[0.0,0.0,0.0],"2023-10-09":[0.0,0.0,0.0],"2023-10-10":[0.0,0.0,0.7],"2023-10-11":[0.01,0.79,0.63],"2023-10-12":[0.84,0.71,0.66],"2023-10-13":[0.87,0.77,0.69],"2023-10-14":[0.87,0.77,0.67],"2023-10-15":[0.87,0.78,0.68],"2023-10-16":[0.86,0.78,0.68],"2023-10-17":[0.83,0.74,0.63],"2023-10-18":[0.85,0.69,0.64],"2023-10-19":[0.0,0.0,0.01],"2023-10-20":[0.0,0.0,0.01],"2023-10-21":[0.0,0.0,0.64],"2023-10-22":[0.0,0.68,0.58],"2023-10-23":[0.83,0.65,0.56],"2023-10-24":[0.0,0.0,0.0],"2023-10-25":[0.0,0.0,0.0],"2023-10-26":[0.0,0.0,0.05],"2023-10-27":[0.0,0.0,0.02],"2023-10-28":[0.0,0.0,0.65],"2023-10-29":[0.04,0.74,0.63],"2023-10-30":[0.59,0.55,0.5],"2023-10-31":[0.01,0.0,0.0],"2023-11-01":[0.0,0.0,0.0],"2023-11-02":[0.0,0.0,0.03],"2023-11-03":[0.0,0.01,0.54],"2023-11-04":[0.07,0.74,0.63],"2023-11-05":[0.82,0.67,0.59],"2023-11-06":[0.8,0.69,0.61],"2023-11-07":[0.86,0.74,0.64],"2023-11-08":[0.76,0.67,0.64],"2023-11-09":[0.73,0.55,0.4],"2023-11-10":[0.84,0.67,0.59],"2023-11-11":[0.87,0.74,0.71],"2023-11-12":[0.88,0.77,0.66],"2023-11-13":[0.65,0.57,0.48],"2023-11-14":[0.77,0.65,0.62],"2023-11-15":[0.77,0.68,0.63],"2023-11-16":[0.86,0.74,0.62],"2023-11-17":[0.88,0.74,0.59],"2023-11-18":[0.86,0.67,0.52],"2023-11-19":[0.76,0.59,0.5],"2023-11-20":[0.81,0.69,0.57],"2023-11-21":[0.87,0.72,0.59],"2023-11-22":[0.9,0.77,0.58],"2023-11-23":[0.01,0.01,0.01],"2023-11-24":[0.0,0.0,0.0],"2023-11-25":[0.0,0.0,0.26],"2023-11-26":[0.0,0.01,0.35],"2023-11-27":[0.01,0.0,0.05],"2023-11-28":[0.0,0.0,0.09],"2023-11-29":[0.01,0.01,0.34],"2023-11-30":[0.0,0.01,0.24],"2023-12-01":[0.25,0.63,0.55],"2023-12-02":[0.56,0.62,0.58],"2023-12-03":[0.8,0.69,0.55],"2023-12-04":[0.78,0.63,0.5],"2023-12-05":[0.58,0.32,0.24],"2023-12-06":[0.76,0.59,0.41],"2023-12-07":[0.54,0.4,0.58],"2023-12-08":[0.65,0.79,0.61],"2023-12-09":[0.91,0.76,0.61],"2023-12-10":[0.3,0.24,0.17],"2023-12-11":[0.66,0.41,0.37],"2023-12-12":[0.56,0.46,0.62],"2023-12-13":[0.68,0.72,0.6],"2023-12-14":[0.9,0.74,0.54],"2023-12-15":[0.85,0.66,0.51],"2023-12-16":[0.85,0.67,0.52],"2023-12-17":[0.87,0.7,0.57],"2023-12-18":[0.87,0.7,0.56],"2023-12-19":[0.86,0.69,0.56],"2023-12-20":[0.88,0.77,0.57],"2023-12-21":[0.88,0.77,0.59],"2023-12-22":[0.88,0.78,0.61],"2023-12-23":[0.82,0.65,0.6],"2023-12-24":[0.89,0.75,0.68],"2023-12-25":[0.74,0.64,0.6],"2023-12-26":[0.9,0.8,0.72],"2023-12-27":[0.85,0.8,0.7],"2023-12-28":[0.92,0.85,0.77],"2023-12-29":[0.91,0.83,0.72],"2023-12-30":[0.92,0.85,0.77],"2023-12-31":[0.92,0.85,0.73]};
+const LIMIAR = 20.6, MES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+let serie = [];
+
+/* ---------- série ---------- */
+function montar(){
+  const d0 = new Date(DADOS.inicio + "T00:00:00");
+  serie = DADOS.chuva.map((mm,i)=>{ const dt=new Date(d0); dt.setDate(d0.getDate()+i); return {dt,mm}; });
+  serie.forEach((d,i)=>{
+    if(i<4){ d.ac5=null; return; }
+    d.ac5 = +serie.slice(i-4,i+1).reduce((a,b)=>a+b.mm,0).toFixed(1);
+    d.seca = d.ac5 < LIMIAR;
+  });
+}
+const fmt = d => String(d.getDate()).padStart(2,"0")+" "+MES[d.getMonth()];
+const rot = a => a+"/"+String(a+1).slice(2);
+const ciclo = a => serie.filter(d=>d.ac5!==null && d.dt>=new Date(a,8,1) && d.dt<=new Date(a+1,2,31));
+function anos(){
+  const s=new Set(); serie.forEach(d=>{const m=d.dt.getMonth();
+    if(m>=8)s.add(d.dt.getFullYear()); else if(m<=2)s.add(d.dt.getFullYear()-1);});
+  return [...s].sort((a,b)=>b-a).filter(a=>ciclo(a).length>60);
+}
+function fase(dt){
+  const m=dt.getMonth(), dia=dt.getDate();
+  if(m===8) return "pré-plantio";
+  if(m===9) return "semeadura e emergência";
+  if(m===10) return "vegetativo (V)";
+  if(m===11) return dia<16 ? "vegetativo tardio" : "floração (R1–R2)";
+  if(m===0) return dia<16 ? "formação de vagens (R3–R4)" : "enchimento de grãos (R5)";
+  if(m===1) return "enchimento e maturação (R6–R7)";
+  return "maturação e colheita (R8)";
+}
+const critica = dt => (dt.getMonth()===11 && dt.getDate()>=16) || dt.getMonth()===0 || dt.getMonth()===1;
+function episodios(c){
+  const e=[]; let i=0;
+  while(i<c.length){
+    if(c[i].seca){
+      let j=i; while(j+1<c.length && c[j+1].seca) j++;
+      const n=j-i+1;
+      if(n>=3){
+        const t=c.slice(i,j+1), media=t.reduce((a,b)=>a+b.ac5,0)/n, cr=t.some(d=>critica(d.dt));
+        let sev = (n>=10||(n>=6&&cr)) ? "alta" : (n>=6||(n>=4&&cr)) ? "média" : "baixa";
+        e.push({ini:c[i].dt,fim:c[j].dt,n,media,sev,fase:fase(c[i].dt)});
+      }
+      i=j+1;
+    } else i++;
+  }
+  return e;
+}
+function resumo(a){
+  const c=ciclo(a); if(!c.length) return null;
+  const secos=c.filter(d=>d.seca).length, eps=episodios(c);
+  return {ano:a,c,secos,pct:100*secos/c.length,eps,
+          maior:eps.length?Math.max(...eps.map(e=>e.n)):0,
+          chuva:c.reduce((s,d)=>s+d.mm,0)};
+}
+
+/* ---------- barra de simulação do ciclo ---------- */
+let iManual = null, tocando = null;
+function barraTempo_el(c, iH){
+  dataHoje.textContent = fmt(c[iH].dt) + " " + c[iH].dt.getFullYear();
+  diaCiclo.textContent = `dia ${iH+1} de ${c.length} · ${fase(c[iH].dt)}`;
+  cursor.min = 4; cursor.max = c.length-1; cursor.value = iH;
+  fimCiclo.textContent = fmt(c[c.length-1].dt);
+}
+function irPara(k){
+  const c = resumo(+safra.value).c;
+  iManual = Math.max(4, Math.min(c.length-1, k));
+  pintar();
+}
+function pausar(){
+  if(tocando){ clearInterval(tocando); tocando = null; btnPlay.innerHTML = "&#9654; Reproduzir"; }
+}
+
+/* ---------- previsão de 3 dias (modelo treinado até 31/08 do ano da safra) ---------- */
+const CORTE_ALERTA = 0.35;
+const iso = d => d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const previsao = d => PREV[iso(d)] || null;
+
+/* Dia "hoje" da demonstração: no meio do ciclo, de preferência num dia em que a
+   lavoura ainda está com água e o modelo já enxerga estiagem chegando. */
+function escolherHoje(c){
+  const n=c.length, ini=Math.floor(n*.42), fim=Math.min(Math.floor(n*.82), n-4);
+  let melhor=-1, nota=-1;
+  for(let i=ini;i<=fim;i++){
+    const p=previsao(c[i].dt);
+    if(!p || c[i].seca || p.some(v=>v===null||v===undefined)) continue;
+    const m=(p[0]+p[1]+p[2])/3;                       // sinal mais nítido nos três horizontes
+    if(m>=CORTE_ALERTA && m>nota){ nota=m; melhor=i; }
+  }
+  return melhor>=0 ? melhor : Math.min(n-4, Math.round(n*.62));
+}
+
+/* ---------- render ---------- */
+function pintar(){
+  const a=+safra.value, r=resumo(a); if(!r) return;
+  const c=r.c;
+  if(iManual===null || iManual>c.length-1) iManual=escolherHoje(c);
+  const iH=Math.max(4,Math.min(c.length-1,iManual)), u=c[iH], ate=c.slice(0,iH+1);
+  const epsAte=episodios(ate), secos=ate.filter(d=>d.seca).length;
+  const maior=epsAte.length?Math.max(...epsAte.map(e=>e.n)):0;
+  const chuva=ate.reduce((s,d)=>s+d.mm,0);
+  const p=previsao(u.dt);
+  const alvos=[1,2,3].map(k=>({k,p:p?p[k-1]:null,d:c[iH+k]}))
+                     .filter(x=>x.p!==null&&x.d&&x.p>=CORTE_ALERTA);
+  const mm = v => v.toFixed(1).replace(".",",");
+  const pct = v => Math.round(v*100)+"%";
+
+  kpis.innerHTML = `
+    <div class="card kpi ${u.seca?"est":"ok"}">
+      <div class="rot">Situação em ${fmt(u.dt)}</div>
+      <div class="v">${u.seca?"Estiagem da cultura":"Água suficiente"}</div>
+      <div class="u">${mm(u.ac5)} mm em 5 dias · ${fase(u.dt)}</div></div>
+    <div class="card kpi"><div class="rot">Dias em estiagem</div>
+      <div class="v">${secos}</div><div class="u">de ${ate.length} dias decorridos do ciclo</div></div>
+    <div class="card kpi"><div class="rot">Maior sequência</div>
+      <div class="v">${maior}</div><div class="u">dias seguidos sob o limiar</div></div>
+    <div class="card kpi"><div class="rot">Chuva acumulada</div>
+      <div class="v">${Math.round(chuva)}</div><div class="u">mm desde 1º de setembro</div></div>`;
+
+  desenhar(r, iH);
+  barraTempo_el(c, iH);
+
+  if(alvos.length){
+    const x=alvos[0];
+    alertaAtual.innerHTML = `<div class="rot">Alerta antecipado</div>
+      <div class="t">Estiagem prevista para ${fmt(x.d.dt)}</div>
+      <p>O modelo estima <b>${pct(x.p)}</b> de probabilidade de a janela de cinco dias encerrada em
+      ${fmt(x.d.dt)} ficar abaixo de 20,6 mm — ${x.k} dia${x.k>1?"s":""} antes de a soma existir.
+      Fase da cultura: ${fase(x.d.dt)}. Hoje o acumulado é de ${mm(u.ac5)} mm.</p>`;
+    alertaAtual.style.borderLeftColor = "var(--ambar)";
+  } else {
+    const vis = [1,2,3].map(k=>p&&c[iH+k]?p[k-1]:null).filter(v=>v!==null&&v!==undefined);
+    const fimCiclo = iH >= c.length-2;
+    alertaAtual.innerHTML = `<div class="rot">${fimCiclo?"Ciclo encerrado":"Sem alerta para os próximos 3 dias"}</div>
+      <div class="t" style="color:${u.seca?"#8a5810":"var(--verde)"}">${u.seca?"Estiagem em curso":"Água suficiente"}</div>
+      <p>A janela encerrada em ${fmt(u.dt)} acumulou ${mm(u.ac5)} mm.
+      ${fimCiclo?"O ciclo chegou ao fim — não há mais dias a prever nesta safra."
+        :(vis.length?`Maior probabilidade nos dias à frente: <b>${pct(Math.max(...vis))}</b>, abaixo do corte de 35%.`:"")}</p>`;
+    alertaAtual.style.borderLeftColor = u.seca ? "var(--ambar)" : "var(--verde)";
+  }
+  alertaAtual.className = "card alerta-box";
+
+  episodios_el({eps:epsAte});
+  tabelaAlertas(r);
+  tabelaRel(a);
+  pillStatus.className = u.seca ? "pill al" : "pill";
+  pillStatus.lastElementChild.textContent = u.seca ? "alerta ativo" : "ingestão ativa";
+  rodape.textContent = `Estação da Embrapa Agropecuária Oeste, Dourados/MS · série diária real de `
+    + `${fmt(c[0].dt)} a ${fmt(u.dt)} (ciclo em andamento) · classificação pelo limiar de 20,6 mm em `
+    + `janelas de cinco dias · previsão de 3 dias pelo modelo treinado até 31 de agosto do ano da safra.`;
+}
+
+function desenhar(r, iH){
+  const W=Math.max(fita.clientWidth||1000,540), H=Math.max(fita.clientHeight||280,230);
+  const pad={t:14,b:34,l:34,r:6}, c=r.c, n=c.length;
+  const LARGP=Math.min(186,Math.max(120,W*.19)), GAP=16, xR=W-pad.r-LARGP-GAP;
+  const topo=Math.max(60,Math.ceil(Math.max(...c.map(d=>d.ac5))/20)*20);
+  const bw=(xR-pad.l)/n, x=i=>pad.l+i*bw, y=v=>pad.t+(1-Math.min(v,topo)/topo)*(H-pad.t-pad.b);
+  const F="IBM Plex Mono,monospace", S="IBM Plex Sans,sans-serif";
+  let s="";
+
+  // faixa ainda não medida
+  if(iH<n-1) s+=`<rect x="${x(iH+1)}" y="${pad.t}" width="${xR-x(iH+1)}" height="${y(0)-pad.t}" fill="#f4f5f2"/>`;
+
+  [0,topo/2,topo].forEach(v=>{
+    s+=`<line x1="${pad.l}" y1="${y(v)}" x2="${xR}" y2="${y(v)}" stroke="#eef1ee"/>`;
+    s+=`<text x="${pad.l-5}" y="${y(v)+3}" text-anchor="end" font-family="${F}" font-size="8.5" fill="#6b7570">${v}</text>`;
+  });
+
+  // barras medidas até hoje
+  c.forEach((d,i)=>{
+    if(i>iH) return;
+    const hh=Math.max(1.2,y(0)-y(d.ac5));
+    s+=`<rect x="${x(i).toFixed(2)}" y="${(y(0)-hh).toFixed(2)}" width="${Math.max(bw-.3,.5).toFixed(2)}" height="${hh.toFixed(2)}" fill="${d.seca?"#c8801e":"#2e6b4f"}" opacity="${d.seca?.95:.72}"/>`;
+  });
+
+  s+=`<line x1="${pad.l}" y1="${y(LIMIAR)}" x2="${xR}" y2="${y(LIMIAR)}" stroke="#16261f" stroke-width="1.3"/>`;
+
+  let ma=-1;
+  c.forEach((d,i)=>{ if(d.dt.getMonth()!==ma){ ma=d.dt.getMonth();
+    s+=`<line x1="${x(i)}" y1="${pad.t}" x2="${x(i)}" y2="${y(0)+5}" stroke="#e2e7e3"/>`;
+    s+=`<text x="${x(i)+4}" y="${y(0)+16}" font-family="${F}" font-size="9" fill="#6b7570">${MES[ma]}</text>`; }
+    if(i<=iH && critica(d.dt)) s+=`<rect x="${x(i).toFixed(2)}" y="${y(0)+21}" width="${Math.max(bw,.6).toFixed(2)}" height="3.5" fill="#c8801e" opacity=".35"/>`;
+  });
+
+  // marca de hoje
+  const xh=x(iH+1);
+  s+=`<line x1="${xh}" y1="${pad.t-6}" x2="${xh}" y2="${y(0)+5}" stroke="#16261f" stroke-width="1.1" stroke-dasharray="3 3"/>`;
+  s+=`<circle cx="${xh}" cy="${pad.t-6}" r="2.4" fill="#16261f"/>`;
+  const fimGraf = xR-xh < 40;
+  s+=`<text x="${fimGraf?xh-6:xh+5}" y="${pad.t-2}" text-anchor="${fimGraf?"end":"start"}" font-family="${S}" font-size="10.5" font-weight="600" fill="#16261f">hoje</text>`;
+  if(xR-xh>150)
+    s+=`<text x="${xR-4}" y="${pad.t-2}" text-anchor="end" font-family="${F}" font-size="10" fill="#9aa4a0">ciclo ainda por medir</text>`;
+
+  // ---- painel de previsão ----
+  const X0=xR+GAP, p=previsao(c[iH].dt), cw=Math.min(46,(LARGP-24)/3), cg=(LARGP-3*cw)/2;
+  s+=`<line x1="${X0-GAP/2}" y1="${pad.t-10}" x2="${X0-GAP/2}" y2="${y(0)+22}" stroke="#e2e7e3"/>`;
+  const tituloP = LARGP>=170 ? "PROBABILIDADE DE ESTIAGEM" : "PREVISÃO DE 3 DIAS";
+  s+=`<text x="${X0}" y="${pad.t-2}" font-family="${F}" font-size="8.5" letter-spacing="1" fill="#6b7570">${tituloP}</text>`;
+  const yP=v=>pad.t+8+(1-v)*(y(0)-pad.t-8);
+  for(let k=1;k<=3;k++) s+=`<rect x="${X0+(k-1)*(cw+cg)}" y="${pad.t+8}" width="${cw}" height="${y(0)-pad.t-8}" fill="#f4f5f2"/>`;
+  s+=`<line x1="${X0}" y1="${yP(CORTE_ALERTA)}" x2="${X0+LARGP}" y2="${yP(CORTE_ALERTA)}" stroke="#c8801e" stroke-width="1" stroke-dasharray="4 3"/>`;
+  s+=`<text x="${X0}" y="${yP(CORTE_ALERTA)-5}" font-family="${F}" font-size="8.5" fill="#8a5810">corte 35%</text>`;
+  for(let k=1;k<=3;k++){
+    const v=p?p[k-1]:null, alvo=c[iH+k], xc=X0+(k-1)*(cw+cg);
+    if(v===null||v===undefined||!alvo){
+      s+=`<text x="${xc+cw/2}" y="${y(0)-8}" text-anchor="middle" font-family="${F}" font-size="10" fill="#9aa4a0">—</text>`;
+      continue;
+    }
+    const cor=v>=CORTE_ALERTA?"#c8801e":"#2e6b4f", yv=yP(v);
+    s+=`<rect x="${xc}" y="${yv}" width="${cw}" height="${y(0)-yv}" fill="none" stroke="${cor}" stroke-width="1.5" stroke-dasharray="4 3"/>`;
+    s+=`<text x="${xc+cw/2}" y="${yv-6}" text-anchor="middle" font-family="${S}" font-size="11.5" font-weight="600" fill="${cor}">${Math.round(v*100)}%</text>`;
+    s+=`<text x="${xc+cw/2}" y="${y(0)+13}" text-anchor="middle" font-family="${F}" font-size="9" fill="#6b7570">D+${k}</text>`;
+    s+=`<text x="${xc+cw/2}" y="${y(0)+24}" text-anchor="middle" font-family="${S}" font-size="9.5" fill="#16261f">${fmt(alvo.dt)}</text>`;
+  }
+  s+=`<line x1="${X0}" y1="${y(0)}" x2="${X0+LARGP}" y2="${y(0)}" stroke="#e2e7e3"/>`;
+
+  fita.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  fita.innerHTML=s;
+}
+
+function episodios_el(r){
+  document.getElementById('episodios').innerHTML = r.eps.length ? r.eps.map(e=>`
+    <div class="item"><div class="d">${e.n}<small>dias</small></div>
+      <div class="p">${fmt(e.ini)} a ${fmt(e.fim)}
+        <span>${e.fase} · severidade ${e.sev}</span></div></div>`).join("")
+    : `<div class="info">Nenhuma sequência de três dias ou mais sob o limiar neste ciclo.</div>`;
+}
+function tabelaAlertas(r){
+  tabAlertas.innerHTML = r.eps.length ? r.eps.map(e=>`
+    <tr><td>${fmt(e.ini)} a ${fmt(e.fim)}</td><td class="m">${e.n} dias</td>
+      <td class="m">${e.media.toFixed(1).replace(".",",")} mm</td><td>${e.fase}</td>
+      <td><span class="tag ${e.sev==="baixa"?"on":"sec"}">${e.sev}</span></td></tr>`).join("")
+    : `<tr><td colspan="5" style="text-align:center;color:var(--cinza);padding:26px">Nenhum alerta neste ciclo.</td></tr>`;
+}
+function tabelaRel(atual){
+  const ls = anos().map(resumo).filter(Boolean);
+  const mx = Math.max(...ls.map(l=>l.pct));
+  tabRel.innerHTML = ls.map(l=>`
+    <tr style="${l.ano===atual?"background:#f2f7f4;font-weight:600":""}">
+      <td>${rot(l.ano)}</td><td class="m">${l.secos}</td>
+      <td class="m"><span class="barra" style="width:${(l.pct/mx*46).toFixed(0)}px"></span>${l.pct.toFixed(0)}%</td>
+      <td class="m">${l.maior} dias</td><td class="m">${l.eps.length}</td>
+      <td class="m">${Math.round(l.chuva)} mm</td></tr>`).join("");
+}
+
+/* ---------- estações (demonstração) ---------- */
+function tabelaEstacoes(){
+  const base = serie[serie.length-1];
+  const locais = [
+    ["A702 · Embrapa CPAO","Dourados", 0, true],
+    ["A719 · INMET","Ponta Porã", -3.4, true],
+    ["A756 · INMET","Maracaju", 5.1, true],
+    ["A730 · INMET","Amambai", -1.8, true],
+    ["A736 · INMET","Caarapó", 2.6, true],
+    ["A742 · INMET","Rio Brilhante", -5.2, true],
+    ["A709 · INMET","Sidrolândia", 8.3, true],
+    ["A748 · INMET","Naviraí", 3.9, false],
+  ];
+  tabEstacoes.innerHTML = locais.map(([id,mun,delta,on])=>{
+    const v = Math.max(0, base.ac5 + delta);
+    const seca = v < LIMIAR;
+    return `<tr><td>${id}</td><td>${mun}</td>
+      <td class="m">${on?fmt(base.dt):"—"}</td>
+      <td class="m">${on?v.toFixed(1).replace(".",",")+" mm":"—"}</td>
+      <td>${on?`<span class="tag ${seca?"sec":"on"}">${seca?"estiagem":"normal"}</span>`
+              :`<span class="tag off">sem sinal</span>`}</td></tr>`;
+  }).join("");
+}
+
+/* ---------- informativos ---------- */
+function informativos_el(){
+  const r = resumo(+safra.value);
+  const pior = r.eps.slice().sort((a,b)=>b.n-a.n)[0];
+  informativos.innerHTML = `
+    <div class="card noticia"><div class="rot">Boletim da área</div>
+      <h4>${r.pct>60?"Ciclo com predomínio de estiagem":"Ciclo com boa distribuição de chuva"}</h4>
+      <p>Na safra ${rot(r.ano)}, ${r.secos} dos ${r.c.length} dias do ciclo ficaram abaixo do
+         limiar de 20,6 mm — ${r.pct.toFixed(0)}% do período.</p>
+      <p>A chuva acumulada entre setembro e março somou ${Math.round(r.chuva)} mm.</p>
+      <div class="fonte">gerado pela plataforma · Dourados/MS</div></div>
+    <div class="card noticia"><div class="rot">Episódio de destaque</div>
+      <h4>${pior?`${pior.n} dias seguidos sem água suficiente`:"Nenhum episódio prolongado"}</h4>
+      <p>${pior?`Entre ${fmt(pior.ini)} e ${fmt(pior.fim)}, a lavoura passou por estiagem
+         contínua durante a fase de ${pior.fase}, com média de
+         ${pior.media.toFixed(1).replace(".",",")} mm em cinco dias.`
+        :"Não houve sequência de três dias ou mais sob o limiar neste ciclo."}</p>
+      <div class="fonte">gerado pela plataforma · severidade ${pior?pior.sev:"—"}</div></div>
+    <div class="card noticia"><div class="rot">Contexto estadual</div>
+      <h4>Veranicos atingiram 640 mil hectares em MS</h4>
+      <p>Entre janeiro e fevereiro de 2026, as regiões Sul e Central do estado registraram
+         veranicos severos, com mais de 20 dias sem chuva em algumas localidades.</p>
+      <p>Dourados, Ponta Porã, Maracaju e Amambai estiveram entre os municípios mais afetados.</p>
+      <div class="fonte">SIGA-MS / APROSOJA-MS · Boletim nº 661, maio de 2026</div></div>`;
+}
+
+/* ---------- navegação ---------- */
+const TITULOS = {
+  painel:["Painel da safra","Dourados/MS · estação pública"],
+  estacoes:["Estações","Ingestão automática e integração"],
+  alertas:["Alertas","Histórico do ciclo selecionado"],
+  relatorios:["Relatórios","Fazenda Santa Luzia · comparativo entre safras"],
+  informativos:["Informativos","Resumos gerados para a área e para a imprensa"],
+};
+nav.addEventListener("click", ev=>{
+  const b = ev.target.closest("button[data-tela]"); if(!b) return;
+  nav.querySelectorAll("button").forEach(x=>x.removeAttribute("aria-current"));
+  b.setAttribute("aria-current","page");
+  document.querySelectorAll(".tela").forEach(t=>t.classList.remove("on"));
+  document.getElementById("tela-"+b.dataset.tela).classList.add("on");
+  const [t,s] = TITULOS[b.dataset.tela];
+  tituloTela.textContent = t; subTela.textContent = s;
+  if(b.dataset.tela==="estacoes") tabelaEstacoes();
+  if(b.dataset.tela==="informativos") informativos_el();
+});
+safra.onchange = ()=>{ pausar(); iManual = null; pintar(); informativos_el(); };
+btnVoltar.onclick = ()=>{ pausar(); irPara(iManual-1); };
+btnAvancar.onclick = ()=>{ pausar(); irPara(iManual+1); };
+cursor.oninput = e => { pausar(); irPara(+e.target.value); };
+btnPlay.onclick = ()=>{
+  if(tocando){ pausar(); return; }
+  btnPlay.innerHTML = "&#10074;&#10074; Pausar";
+  tocando = setInterval(()=>{
+    const n = resumo(+safra.value).c.length;
+    if(iManual >= n-1){ pausar(); return; }
+    irPara(iManual+1);
+  }, 420);
+};
+addEventListener("keydown", e=>{
+  if(!app.classList.contains("on") || document.getElementById("tela-painel").className.indexOf("on")<0) return;
+  if(e.key==="ArrowRight"){ pausar(); irPara(iManual+1); }
+  if(e.key==="ArrowLeft"){ pausar(); irPara(iManual-1); }
+});
+nav.addEventListener("click", ev=>{
+  const b = ev.target.closest("button[data-tela]"); if(!b) return;
+  const noPainel = b.dataset.tela === "painel";
+  barraTempo.style.display = noPainel ? "flex" : "none";
+  if(!noPainel) pausar();
+});
+fonte.onchange = ()=>{ subTela.textContent = fonte.value==="pub"
+  ? "Dourados/MS · estação pública" : "Fazenda Santa Luzia · estação própria"; };
+entrar.onclick = ()=>{ login.style.display="none"; app.classList.add("on");
+  requestAnimationFrame(()=>pintar()); };
+sair.onclick = ()=>{ app.classList.remove("on"); login.style.display="grid"; };
+addEventListener("resize", ()=>{ if(app.classList.contains("on")) pintar(); });
+
+/* ---------- boot ---------- */
+montar();
+safra.innerHTML = anos().map(a=>`<option value="${a}">Safra ${rot(a)}</option>`).join("");
+safra.value = 2021;
+arteFita.innerHTML = [42,68,30,18,14,26,55,88,70,34,17,12,22,58,80,44,26,15,62,74]
+  .map(h=>`<i class="${h<35?"s":""}" style="height:${h}%"></i>`).join("");
+tabelaEstacoes();
+</script>
+</body>
+</html>
