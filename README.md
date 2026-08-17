@@ -16,6 +16,8 @@ Os experimentos iniciais apresentam evidências de viabilidade para a antecipaç
 
 **Autora:** Franciane Rodrigues — Cientista de Dados e Doutora em Administração (ESAN/UFMS)
 
+Link do Vídeo de apresentação: https://www.youtube.com/watch?v=SY-JgeWDpro 
+
 ---
 
 ## 🎓 Origem
