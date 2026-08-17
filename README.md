@@ -1,4 +1,4 @@
-# 🌱 SojaMonitor AI — Inteligência Climática para a Soja
+# 🌱 SojaMonitor AI: Inteligência Climática para a Soja
 
 **Monitoramento e antecipação de estiagens na cultura da soja a partir de dados meteorológicos diários e machine learning.**
 
